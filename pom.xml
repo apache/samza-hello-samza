@@ -168,9 +168,9 @@ under the License.
   </pluginRepositories>
 
   <build>
-    <pluginManagement>
+    <!--<pluginManagement>
       <plugins>
-        <plugin>
+        plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <version>0.9</version>
@@ -193,7 +193,7 @@ under the License.
           </configuration>
         </plugin>
       </plugins>
-    </pluginManagement>
+    </pluginManagement>-->
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -204,7 +204,7 @@ under the License.
           <target>1.7</target>
         </configuration>
       </plugin>
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <version>0.9</version>
@@ -216,7 +216,7 @@ under the License.
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
       <!-- plugin to build the tar.gz file filled with examples -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
