@@ -1,4 +1,4 @@
-package com.magnetic.streaming.samza;
+package com.magnetic.streaming.samza
 
 import com.magnetic.streaming.common.AdEventsParser
 import org.apache.samza.Partition
@@ -55,7 +55,7 @@ object HelloMagneticSamza {
     val envelope = new IncomingMessageEnvelope(partition, "", "key", "msg")
     val collector = new MessageCollector() {
       def send(envelope: OutgoingMessageEnvelope) {
-        println("Send method called:" +  envelope.getSystemStream().getStream())
+        println("Send method called:" +  envelope.getSystemStream.getStream)
       }
     }
     val coordinator = new TaskCoordinator() {
