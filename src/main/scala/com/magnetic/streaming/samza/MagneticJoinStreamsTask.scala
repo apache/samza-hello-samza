@@ -5,7 +5,7 @@ import org.apache.samza.storage.kv.KeyValueStore
 import org.apache.samza.system.{OutgoingMessageEnvelope, SystemStream, IncomingMessageEnvelope}
 import org.apache.samza.task._
 
-class MagneticJoinStreamsTask extends StreamTask with InitableTask {
+class MagneticJoinStreamsTask extends StreamTask with InitableTask with WindowableTask {
 
   val OUTPUT_STREAM = new SystemStream("kafka", "imp-bid-joined")
   var impStore: KeyValueStore[String, String] = null
@@ -41,5 +41,9 @@ class MagneticJoinStreamsTask extends StreamTask with InitableTask {
       case notSupportedStream =>
           throw new RuntimeException(s"Not supported stream: $notSupportedStream")
     }
+  }
+
+  override def window(messageCollector: MessageCollector, taskCoordinator: TaskCoordinator) {
+
   }
 }
