@@ -13,7 +13,8 @@ object AdEventsParser {
   val RETARGETING = "rpx"
   val RETARCOUNT  = "rcount"
   val ERROR       = "error"
-  val SKIP        = "skip" 
+  val SKIP        = "skip"
+  val BID         = "bid"
     
   val ACLK_PATH_QS = "/aclk/(\\w+=.*)/qe=".r
   val VALID_AUCTION_ID_PATTERN = "[\\-\\.\\w\\d]{6,50}".r
@@ -26,7 +27,7 @@ object AdEventsParser {
     }
   }
   
-  def parse_common(fields: Map[String, String]): (String, String, String, Map[String, String], String) = {
+  def parse_common(fields: Map[String, String]): (String, Long, String, Map[String, String], String) = {
     
     val timestamp = parse_timestamp(fields.getOrElse("t", ""))
     val querystring = parse_querystring(fields)
@@ -49,40 +50,50 @@ object AdEventsParser {
     line.split("\t").withFilter(_.contains("=")).map(split_one(_)).toMap
   }
 
-  def extract_auction_id(querystring: Map[String, String]): Option[String] = {
-    val network_id = _int(querystring.getOrElse("mp", MAGNETIC_NETWORK_ID.toString))
-
-    if (network_id == MAGNETIC_NETWORK_ID)
-      Some(querystring("id"))
-    else
-      VALID_AUCTION_ID_PATTERN.findFirstIn(querystring.getOrElse("id", ""))
-  }
-
   def should_skip_impression(fields: Map[String, String], querystring: Map[String, String]): Boolean = {
     false //TODO implement
   }
 
-  def extract_impression_auction_id(line: String): Option[String] = {
+  def parse_imp_meta(line: String): Map[String, Any] = {
     val fields = parse_fields(line)
     val (event_type, timestamp, cookie, querystring, pixel_id) = parse_common(fields)
     event_type match {
       case IMPRESSION =>
         if (should_skip_impression(fields, querystring))
-          None
-        else
-          extract_auction_id(querystring)
+          throw new RuntimeException("Should skip impression")
+        else {
+          val network_id = _int(querystring.getOrElse("mp", MAGNETIC_NETWORK_ID.toString))
+
+          val auction_id = {
+            if (network_id == MAGNETIC_NETWORK_ID)
+              querystring("id")
+            else
+              VALID_AUCTION_ID_PATTERN.findFirstIn(querystring.getOrElse("id", "")) match {
+                case Some(x) => querystring("id")
+                case _ => s"fake-$cookie-$timestamp"
+              }
+          }
+          val d = scala.collection.mutable.Map[String, Any]()
+          d("event_type") = IMPRESSION
+          d("auction_id") = auction_id
+          d("log_timestamp") = timestamp
+          d("imp_log_line") = line
+          d.toMap
+        }
       case _ =>
-        None
+        throw new RuntimeException("Not impression: " + event_type)
     }
   }
 
-  def extract_bid_auction_id(line: String): Option[String] = {
-    try {
-      val auction_id = line.split("\t", 10)(8)
-      Some(auction_id)
-    }
-    catch {
-      case t: Throwable => None
-    }
+  def parse_bid_meta(line: String): Map[String, Any] = {
+    val fields = line.split("\t", 10)
+    val auction_id = fields(8)
+    val timestamp = fields(0).toLong
+    val d = scala.collection.mutable.Map[String, Any]()
+    d("event_type") = BID
+    d("auction_id") = auction_id
+    d("log_timestamp") = timestamp
+    d("bid_log_line") = line
+    d.toMap
   }
 }

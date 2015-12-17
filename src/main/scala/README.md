@@ -4,8 +4,8 @@ bin/grid bootstrap
 
 sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-raw --zookeeper localhost:2181 --partitions 1 --replication 1
 sh deploy/kafka/bin/kafka-topics.sh --create --topic bid-raw --zookeeper localhost:2181 --partitions 1 --replication 1
-sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-raw-partitioned --zookeeper localhost:2181 --partitions 4 --replication 1
-sh deploy/kafka/bin/kafka-topics.sh --create --topic bid-raw-partitioned --zookeeper localhost:2181 --partitions 4 --replication 1
+sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-meta --zookeeper localhost:2181 --partitions 4 --replication 1
+sh deploy/kafka/bin/kafka-topics.sh --create --topic bid-meta --zookeeper localhost:2181 --partitions 4 --replication 1
 sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-error --zookeeper localhost:2181 --partitions 1 --replication 1
 sh deploy/kafka/bin/kafka-topics.sh --create --topic bid-error --zookeeper localhost:2181 --partitions 1 --replication 1
 sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-bid-joined --zookeeper localhost:2181 --partitions 1 --replication 1
@@ -32,8 +32,8 @@ tail -100f deploy/yarn/logs/userlogs/application_XXXXXXXXXX_XXXX/container_XXXXX
 sh deploy/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic imp-raw
 sh deploy/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic bid-raw
 
-sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic imp-raw-partitioned
-sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic bid-raw-partitioned
+sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic imp-meta
+sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic bid-meta
 sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic imp-error
 sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic bid-error
 sh deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic imp-bid-join

@@ -1,5 +1,6 @@
 package com.magnetic.streaming.samza
 
+import scala.collection.JavaConversions._
 import com.magnetic.streaming.common.AdEventsParser
 import org.apache.samza.Partition
 import org.apache.samza.system.IncomingMessageEnvelope
@@ -11,10 +12,12 @@ import org.apache.samza.task.StreamTask
 import org.apache.samza.task.TaskCoordinator
 import org.apache.samza.task.TaskCoordinator.RequestScope
 
+import scala.util.{Failure, Success, Try}
+
 class MagneticEventsFeedStreamTask extends StreamTask {
   val NUM_PARTITIONS = 4
-  val IMP_OUTPUT_STREAM = new SystemStream("kafka", "imp-raw-partitioned")
-  val BID_OUTPUT_STREAM = new SystemStream("kafka", "bid-raw-partitioned")
+  val IMP_OUTPUT_STREAM = new SystemStream("kafka", "imp-meta")
+  val BID_OUTPUT_STREAM = new SystemStream("kafka", "bid-meta")
   val IMP_ERROR_STREAM = new SystemStream("kafka", "imp-error")
   val BID_ERROR_STREAM = new SystemStream("kafka", "bid-error")
 
@@ -22,24 +25,32 @@ class MagneticEventsFeedStreamTask extends StreamTask {
     key.hashCode() % NUM_PARTITIONS
   }
 
-  def send(auctionId: String, event: String, collector: MessageCollector, system: SystemStream) {
+  def send(event: Map[String, Any], collector: MessageCollector, system: SystemStream) {
+    val auctionId = event("auction_id").asInstanceOf[String]
     collector.send(
-      new OutgoingMessageEnvelope(system, getPartitionKey(auctionId), auctionId, event)
+      new OutgoingMessageEnvelope(system, getPartitionKey(auctionId), auctionId, mapAsJavaMap(event))
+    )
+  }
+
+  def sendError(rawEvent: String, ex: Throwable, collector: MessageCollector, system: SystemStream) {
+    val error = Map("event_type" -> AdEventsParser.ERROR, "log_line" -> rawEvent, "exception" -> ex.getMessage)
+    collector.send(
+      new OutgoingMessageEnvelope(system, mapAsJavaMap(error))
     )
   }
 
   override def process(envelope: IncomingMessageEnvelope, collector: MessageCollector, coordinator: TaskCoordinator) {
-    val event = envelope.getMessage.asInstanceOf[String]
+    val rawEvent = envelope.getMessage.asInstanceOf[String]
     envelope.getSystemStreamPartition.getSystemStream.getStream match {
       case "imp-raw" =>
-        AdEventsParser.extract_impression_auction_id(event) match {
-          case Some(auctionId) => send(auctionId, event, collector, IMP_OUTPUT_STREAM)
-          case None => collector.send(new OutgoingMessageEnvelope(IMP_ERROR_STREAM, event))
+        Try(AdEventsParser.parse_imp_meta(rawEvent)) match {
+          case Success(metaEvent) => send(metaEvent, collector, IMP_OUTPUT_STREAM)
+          case Failure(exception) => sendError(rawEvent, exception, collector, IMP_ERROR_STREAM)
         }
       case "bid-raw" =>
-        AdEventsParser.extract_bid_auction_id(event) match {
-          case Some(auctionId) => send(auctionId, event, collector, BID_OUTPUT_STREAM)
-          case None => collector.send(new OutgoingMessageEnvelope(BID_ERROR_STREAM, event))
+        Try(AdEventsParser.parse_bid_meta(rawEvent)) match {
+          case Success(metaEvent) => send(metaEvent, collector, BID_OUTPUT_STREAM)
+          case Failure(exception) => sendError(rawEvent, exception, collector, BID_ERROR_STREAM)
         }
       case notSupportedStream =>
         throw new RuntimeException(s"Not supported stream: $notSupportedStream")
@@ -56,6 +67,7 @@ object HelloMagneticSamza {
     val collector = new MessageCollector() {
       def send(envelope: OutgoingMessageEnvelope) {
         println("Send method called:" +  envelope.getSystemStream.getStream)
+        println("Message:" +  envelope.getMessage)
       }
     }
     val coordinator = new TaskCoordinator() {

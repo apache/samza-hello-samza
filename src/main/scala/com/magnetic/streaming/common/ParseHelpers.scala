@@ -2,6 +2,7 @@ package com.magnetic.streaming.common
 
 import java.net.{URL, URLDecoder}
 import java.text.SimpleDateFormat
+import java.util.TimeZone
 
 import scala.util.Try
 
@@ -22,10 +23,10 @@ object ParseHelpers {
     }
   }
   
-  def parse_timestamp(raw_timestamp: String): String = {
+  def parse_timestamp(raw_timestamp: String): Long = {
     Try {new SimpleDateFormat("[dd/MMM/yyyy:HH:mm:ss Z]").parse(raw_timestamp)}.toOption match {
-      case Some(t) => (t.getTime/1000).toString
-      case _ => "0"
+      case Some(t) => t.getTime/1000
+      case _ => 0
     }
   }
   
