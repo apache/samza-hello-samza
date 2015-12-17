@@ -12,6 +12,8 @@ class MagneticJoinStreamsTask extends StreamTask with InitableTask with Windowab
   val OUTPUT_STREAM = new SystemStream("kafka", "imp-bid-joined")
   var impStore: KeyValueStore[String, java.util.Map[String, Any]] = null
   var bidStore: KeyValueStore[String, java.util.Map[String, Any]] = null
+  var lastImpTimestamp = 0
+  var lastBidTimestamp = 0
 
   override def init(config: Config, context: TaskContext) {
     this.impStore = context.getStore("imp-store").asInstanceOf[KeyValueStore[String, java.util.Map[String, Any]]]
@@ -30,10 +32,10 @@ class MagneticJoinStreamsTask extends StreamTask with InitableTask with Windowab
 
   override def process(envelope: IncomingMessageEnvelope, collector: MessageCollector, coordinator: TaskCoordinator) {
     val key = envelope.getKey.asInstanceOf[String]
-    println(envelope.getMessage)
     val event = mapAsScalaMap(envelope.getMessage.asInstanceOf[java.util.Map[String,Any]]).toMap
     envelope.getSystemStreamPartition.getSystemStream.getStream match {
       case "imp-meta" =>
+        lastImpTimestamp = event("log_timestamp").asInstanceOf[Integer]
         Option(bidStore.get(key)) match {
           case Some(bid) =>
             collector.send(
@@ -45,6 +47,7 @@ class MagneticJoinStreamsTask extends StreamTask with InitableTask with Windowab
           case None => impStore.put(key, mapAsJavaMap(event))
         }
       case "bid-meta" =>
+        lastBidTimestamp = event("log_timestamp").asInstanceOf[Integer]
         Option(impStore.get(key)) match {
           case Some(imp) =>
             collector.send(
@@ -60,7 +63,18 @@ class MagneticJoinStreamsTask extends StreamTask with InitableTask with Windowab
     }
   }
 
-  override def window(messageCollector: MessageCollector, taskCoordinator: TaskCoordinator) {
+  def cleanUpEventStore(eventStore: KeyValueStore[String, java.util.Map[String, Any]], thresholdTimestamp: Integer) {
+    val it = eventStore.all()
+    while (it.hasNext) {
+      val entry = it.next()
+      if (entry.getValue.get("log_timestamp").asInstanceOf[Integer] < thresholdTimestamp) {
+        eventStore.delete(entry.getKey)
+      }
+    }
+  }
 
+  override def window(messageCollector: MessageCollector, taskCoordinator: TaskCoordinator) {
+    cleanUpEventStore(impStore, lastImpTimestamp - 3600) //TODO Keep one hour of events. Make it configurable
+    cleanUpEventStore(bidStore, lastBidTimestamp - 3600) //TODO Keep one hour of events. Make it configurable
   }
 }
