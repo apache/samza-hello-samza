@@ -1,5 +1,28 @@
 # Magnetic Imp-Bid Join PoC using Samza
 
+###Intro
+- Repartition impressions and bids by the same key (auction id) and send them to related topic/partition.
+- That way n-th partition of impressions topic will have the same auctions as n-th partition of bids topic.
+- When reading those topics, Samza will provide data from n-th partition on both topics to the same task, 
+i.e. all the necessary information to make a join will end up on the same machine/process.
+- Samza's local state storage (KV store) provides a lookup mechanism to make a join.
+- Increasing amount of partitions/concurrent tasks allows the join to scale linearly (nothing-share architecture).
+- Tested on local Samza grid
+
+###TODO
+- Deploy to Hadoop cluster and test at scale
+- Performance of the state storage for lookups, size of the data we can hold (KV storage works well on SSD, 
+but can suffer on regular HDD)
+- Performance of the state storage at clean up since it pauses main processing, 
+i.e. window() method blocks process() method
+- Restoring from checkpoint; can we control read rates so two streams stay more or less aligned?
+- Replays from Kafka at some time interval; need to maintain timestamp->offsets/topic/partition information
+- Replays from s3? If we can keep big enough window, it's easier that with Spark, 
+because data streams alignment is not so critical
+
+### Current state PoC
+Use following commands to run PoC locally.
+
 ```
 # For the first time run to set up Samza environment
 bin/grid bootstrap
@@ -25,15 +48,17 @@ rm -rf deploy/samza
 mkdir -p deploy/samza
 tar -xvf ./target/hello-samza-0.10.0-dist.tar.gz -C deploy/samza
 
+# Start raw events repartition
 deploy/samza/bin/run-job.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory \
     --config-path=file://$PWD/deploy/samza/config/magnetic-feed.properties
+# Start join process
 deploy/samza/bin/run-job.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory \
     --config-path=file://$PWD/deploy/samza/config/magnetic-join.properties
     
 # Logs can be found:
 tail -100f deploy/yarn/logs/userlogs/application_XXXXXXXXXX_XXXX/container_XXXXXXXXXX_XXXX_XX_XXXXXX/{logs}
 
-# Submit some ad logs
+# Start Kafka concole producer to submit some ad logs
 sh deploy/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic imp-raw
 
 # Copy paste ad log event(impression)
@@ -51,7 +76,7 @@ sh deploy/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --top
 	V=magnetic.domdex.com	t=[10/Dec/2015:01:00:01 +0000]	a=	u=-	c=c4706fc6df6f48b683d6aca71863f99f	m=GET	l=/ahtm	q=js=t&r=c&b=39634&c=57391&n=9468&id=650e33b95a1449705681&sz=728x90&s=onetravel.com&u=c4706fc6df6f48b683d6aca71863f99f&f=1&cat=00-00&ms=558536&kw=&kwcat=&dp=&a=VmjAfwAOX7AUNL2pBW_4_aHw4x_o6q1Wy3wCYA	s=200	b=2849	r=http://www.onetravel.com/	a0=2601:346:404:4e50:b090:77f3:4343:fbc1	ua=Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; InfoPath.3)	d=1570	rpt=ahtm	x=
 	V=magnetic.domdex.com	t=[10/Dec/2015:01:00:01 +0000]	a=	u=-	c=c4706fc6df6f48b683d6aca71863f99f	m=GET	l=/ahtm	q=js=t&r=c&b=39634&c=57391&n=9468&id=650e33b95a1449705691&sz=728x90&s=onetravel.com&u=c4706fc6df6f48b683d6aca71863f99f&f=1&cat=00-00&ms=558536&kw=&kwcat=&dp=&a=VmjAfwAOX7AUNL2pBW_4_aHw4x_o6q1Wy3wCYA	s=200	b=2849	r=http://www.onetravel.com/	a0=2601:346:404:4e50:b090:77f3:4343:fbc1	ua=Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; InfoPath.3)	d=1570	rpt=ahtm	x=
 
-# Submit some bid logs
+# Start Kafka concole producer to submit some bid logs
 sh deploy/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic bid-raw
 
 # Copy-paste matching bid log event

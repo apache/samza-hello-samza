@@ -13,7 +13,7 @@ import org.apache.samza.task._
  * Uses local KV store assigned for given task to lookup matching events.
  * If match found, creates a joined event and sends it downstream.
  * Otherwise persists event for further lookups.
- * Periodically deletes stale events from local KV store.
+ * Periodically deletes stale events from local KV store (it blocks main processing, so performance is critical).
  */
 class MagneticJoinStreamsTask extends StreamTask with InitableTask with WindowableTask {
 
