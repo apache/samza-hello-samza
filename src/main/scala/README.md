@@ -1,3 +1,5 @@
+# Magnetic Imp-Bid Join PoC using Samza
+
 ```
 # For the first time run to set up Samza environment
 bin/grid bootstrap
@@ -14,7 +16,7 @@ sh deploy/kafka/bin/kafka-topics.sh --create --topic imp-store-changelog --zooke
 sh deploy/kafka/bin/kafka-topics.sh --create --topic bid-store-changelog --zookeeper localhost:2181 --partitions 4 --replication 1
 sh deploy/kafka/bin/kafka-topics.sh --list --zookeeper localhost:2181
 
-# After that start the grid
+# Start the grid
 bin/grid start all
 
 # Build and deploy project

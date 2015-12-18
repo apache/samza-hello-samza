@@ -14,8 +14,14 @@ import org.apache.samza.task.TaskCoordinator.RequestScope
 
 import scala.util.{Failure, Success, Try}
 
+/**
+ * Reads raw impressions and bids from Kafka.
+ * Does minor parsing to extract meta information, like auction id and log timestamp.
+ * Then sends event to the appropriate topic/partition.
+ * Chooses partition, by hashing auction id.
+ */
 class MagneticEventsFeedStreamTask extends StreamTask {
-  val NUM_PARTITIONS = 4
+  val NUM_PARTITIONS = 4  // Equals to the number of partitions in target topic
   val IMP_OUTPUT_STREAM = new SystemStream("kafka", "imp-meta")
   val BID_OUTPUT_STREAM = new SystemStream("kafka", "bid-meta")
   val IMP_ERROR_STREAM = new SystemStream("kafka", "imp-error")
@@ -58,6 +64,9 @@ class MagneticEventsFeedStreamTask extends StreamTask {
   }
 }
 
+/**
+ * TODO remove this and create a proper unit test with mock objects
+ */
 object HelloMagneticSamza {
   def main(args: Array[String]): Unit = {
     val t = new MagneticEventsFeedStreamTask()

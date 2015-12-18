@@ -7,6 +7,14 @@ import org.apache.samza.storage.kv.KeyValueStore
 import org.apache.samza.system.{OutgoingMessageEnvelope, SystemStream, IncomingMessageEnvelope}
 import org.apache.samza.task._
 
+/**
+ * Reads impressions and bids pre-parsed by previous step.
+ * Since they were partitioned by auction id, ims and bids with the same key end up in the same task.
+ * Uses local KV store assigned for given task to lookup matching events.
+ * If match found, creates a joined event and sends it downstream.
+ * Otherwise persists event for further lookups.
+ * Periodically deletes stale events from local KV store.
+ */
 class MagneticJoinStreamsTask extends StreamTask with InitableTask with WindowableTask {
 
   val OUTPUT_STREAM = new SystemStream("kafka", "imp-bid-joined")
