@@ -9,7 +9,7 @@ i.e. all the necessary information to make a join will end up on the same machin
 - Increasing amount of partitions/concurrent tasks allows the join to scale linearly (nothing-share architecture).
 - Tested on local Samza grid
 
-###TODO
+###TODO (See https://github.com/staslos/samza-hello-samza/tree/imp_bid_join_cdh)
 - Deploy to Hadoop cluster and test at scale
 - Performance of the state storage for lookups, size of the data we can hold (KV storage works well on SSD, 
 but can suffer on regular HDD)
