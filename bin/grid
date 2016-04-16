@@ -38,7 +38,6 @@ SYSTEM=$2
 DOWNLOAD_KAFKA=http://www.us.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz
 DOWNLOAD_YARN=https://archive.apache.org/dist/hadoop/common/hadoop-2.6.1/hadoop-2.6.1.tar.gz
 DOWNLOAD_ZOOKEEPER=http://archive.apache.org/dist/zookeeper/zookeeper-3.4.3/zookeeper-3.4.3.tar.gz
-KAFKA_TIMEOUT=10
 
 bootstrap() {
   echo "Bootstrapping the system..."
@@ -148,25 +147,9 @@ start_kafka() {
     cd $DEPLOY_ROOT_DIR/$SYSTEM
     nohup bin/kafka-server-start.sh config/server.properties > logs/kafka.log 2>&1 &
     cd - > /dev/null
-    wait_kafka
   else
     echo 'Kafka is not installed. Run: bin/grid install kafka'
   fi
-}
-
-wait_kafka() {
-  echo "Waiting for kafka broker to start..."
-  CURRENT_WAIT_TIME=0
-  until $(nc -w 2 localhost 9092); do
-    printf '.'
-    sleep 1
-    if [ $((++CURRENT_WAIT_TIME)) -eq $KAFKA_TIMEOUT ]; then
-      echo "Error: timed out while waiting for kafka to start."
-      exit 1
-    fi
-  done
-  printf '\n'
-  echo "Kafka broker is listening";
 }
 
 stop_all() {
