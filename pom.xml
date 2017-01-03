@@ -144,6 +144,7 @@ under the License.
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <samza.version>0.11.0</samza.version>
+    <!-- If you want to build with your compatibility: mvn clean package -Dhadoop.version={your version} -->
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
@@ -278,20 +279,4 @@ under the License.
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <!-- CDH compatible build: mvn clean package -Denv=cdh5.4.0 -->
-    <profile>
-      <id>cdh5.4.0</id>
-      <activation>
-        <property>
-          <name>env</name>
-          <value>cdh5.4.0</value>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.6.0-cdh5.4.0</hadoop.version>
-      </properties>
-    </profile>
-  </profiles>
 </project>
