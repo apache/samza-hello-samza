@@ -138,10 +138,17 @@ under the License.
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
   </dependencies>
 
   <properties>
     <!-- maven specific properties -->
+    <scala.binary.version>2.10</scala.binary.version>
+    <scala.version>2.10.4</scala.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <samza.version>0.12.0</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
@@ -204,9 +211,9 @@ under the License.
   </pluginRepositories>
 
   <build>
-    <pluginManagement>
+    <!--<pluginManagement>
       <plugins>
-        <plugin>
+        plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <version>0.9</version>
@@ -233,8 +240,22 @@ under the License.
           </configuration>
         </plugin>
       </plugins>
-    </pluginManagement>
+    </pluginManagement>-->
+    <sourceDirectory>src/main/scala</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.scala-tools</groupId>
+        <artifactId>maven-scala-plugin</artifactId>
+        <version>2.15.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -244,7 +265,7 @@ under the License.
           <target>1.7</target>
         </configuration>
       </plugin>
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <version>0.9</version>
@@ -256,7 +277,7 @@ under the License.
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
       <!-- plugin to build the tar.gz file filled with examples -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>

@@ -37,6 +37,16 @@
     <!-- filtered=true, so we do variable expansion so the yarn package path
       always points to the correct spot on any machine -->
     <file>
+      <source>${basedir}/src/main/config/magnetic-feed.properties</source>
+      <outputDirectory>config</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+    <file>
+      <source>${basedir}/src/main/config/magnetic-join.properties</source>
+      <outputDirectory>config</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+    <file>
       <source>${basedir}/src/main/config/wikipedia-feed.properties</source>
       <outputDirectory>config</outputDirectory>
       <filtered>true</filtered>
