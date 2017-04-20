@@ -23,6 +23,7 @@ import org.apache.samza.config.Config;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
 import org.apache.samza.operators.StreamGraph;
+import org.apache.samza.operators.functions.FoldLeftFunction;
 import org.apache.samza.operators.windows.WindowPane;
 import org.apache.samza.operators.windows.Windows;
 import org.slf4j.Logger;
@@ -76,14 +77,14 @@ public class TumblingPageViewCounterApp implements StreamApplication {
 
     MessageStream<String> pageViews = graph.<String, String, String>getInputStream(INPUT_TOPIC, (k, v) -> v);
 
-    OutputStream<String, String, WindowPane<String, Collection<String>>> outputStream = graph
-        .getOutputStream(OUTPUT_TOPIC, m -> m.getKey().getKey(), m -> new Integer(m.getMessage().size()).toString());
+    OutputStream<String, String, WindowPane<String, Integer>> outputStream = graph
+        .getOutputStream(OUTPUT_TOPIC, m -> m.getKey().getKey(), m -> m.getMessage().toString());
 
     Function<String, String> keyFn = pageView -> new PageView(pageView).getCountry();
 
     pageViews
         .partitionBy(keyFn)
-        .window(Windows.keyedTumblingWindow(keyFn, Duration.ofSeconds(3)))
+        .window(Windows.keyedTumblingWindow(keyFn, Duration.ofSeconds(3), () -> 0, (m, prevCount) -> prevCount + 1))
         .sendTo(outputStream);
   }
 }
