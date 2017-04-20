@@ -44,7 +44,7 @@ import java.util.function.Function;
  *     ./kafka-topics.sh  --zookeeper localhost:2181 --create --topic pageview-join-input --partitions 2 --replication-factor 1
  *   </li>
  *   <li>
- *     Run the application using the ./bin/run-job.sh script <br/>
+ *     Run the application using the ./bin/run-app.sh script <br/>
  *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory <br/>
  *     --config-path=file://$PWD/deploy/samza/config/pageview-adclick-joiner.properties)
  *   </li>
