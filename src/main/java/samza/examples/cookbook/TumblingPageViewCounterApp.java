@@ -53,8 +53,8 @@ import java.util.function.Function;
  *   <li>
  *     Produce some messages to the "pageviews" topic <br/>
        ./deploy/kafka/bin/kafka-console-producer.sh --topic pageviews --broker-list localhost:9092 <br/>
-       user1 user1,india,google.com <br/>
- *     user2 user2,china,yahoo.com
+       user1,india,google.com <br/>
+ *     user2,china,yahoo.com
  *   </li>
  *   <li>
  *     Consume messages from the "pageviews-by-region" topic (e.g. bin/kafka-console-consumer.sh)
