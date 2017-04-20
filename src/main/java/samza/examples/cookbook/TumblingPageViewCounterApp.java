@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.function.Function;
 
 /**
- * In this example, we group a stream of page views by country, and compute the number of views over a tumbling time
+ * In this example, we group a stream of page views by country, and compute the number of page views over a tumbling time
  * window.
  *
  * <p> Concepts covered: Performing Group-By style aggregations on tumbling time windows.

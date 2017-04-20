@@ -24,15 +24,15 @@ package samza.examples.cookbook;
  */
 public class AdClick {
   /*
-   * An unique identifier for the Ad
+   * An unique identifier for the ad
    */
   private final String adId;
   /**
-   * The user that clicked the Ad
+   * The user that clicked the ad
    */
   private final String userId;
   /**
-   * The id of the page that the Ad was served from
+   * The id of the page that the ad was served from
    */
   private final String pageId;
 
