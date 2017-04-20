@@ -50,7 +50,7 @@ import java.util.function.Function;
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-join-input" topic <br/>
- *     ./deploy/kafka/bin/kafka-console-producer.sh --topic pageviews --broker-list localhost:9092 <br/>
+ *     ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-join-input --broker-list localhost:9092 <br/>
  *     user1,india,google.com <br/>
  *     user2,china,yahoo.com
  *   </li>

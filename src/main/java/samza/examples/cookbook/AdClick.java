@@ -37,7 +37,6 @@ public class AdClick {
   private final String pageId;
 
   public AdClick(String message) {
-
     String[] adClickFields = message.split(",");
     this.adId = adClickFields[0];
     this.userId = adClickFields[1];

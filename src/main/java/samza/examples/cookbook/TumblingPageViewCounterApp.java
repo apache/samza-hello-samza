@@ -38,12 +38,14 @@ import java.util.function.Function;
  *
  * <p> Concepts covered: Performing Group-By style aggregations on tumbling time windows.
  *
+ * <p> Tumbling windows divide a stream into a set of contiguous, fixed-sized, non-overlapping time intervals.
+ *
  * To run the below example:
  *
  * <ol>
  *   <li>
- *     Ensure that the topic "pageviews" is created  <br/>
- *     ./kafka-topics.sh  --zookeeper localhost:2181 --create --topic pageviews --partitions 2 --replication-factor 1
+ *     Ensure that the topic "pageview-tumbling-input" is created  <br/>
+ *     ./kafka-topics.sh  --zookeeper localhost:2181 --create --topic pageview-tumbling-input --partitions 2 --replication-factor 1
  *   </li>
  *   <li>
  *     Run the application using the ./bin/run-app.sh script <br/>
@@ -51,14 +53,14 @@ import java.util.function.Function;
  *     --config-path=file://$PWD/deploy/samza/config/tumbling-pageview-counter.properties)
  *   </li>
  *   <li>
- *     Produce some messages to the "pageviews" topic <br/>
-       ./deploy/kafka/bin/kafka-console-producer.sh --topic pageviews --broker-list localhost:9092 <br/>
+ *     Produce some messages to the "pageview-tumbling-input" topic <br/>
+       ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-tumbling-input --broker-list localhost:9092 <br/>
        user1,india,google.com <br/>
  *     user2,china,yahoo.com
  *   </li>
  *   <li>
- *     Consume messages from the "pageviews-by-region" topic (e.g. bin/kafka-console-consumer.sh)
- *     ./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic pageviews-by-region --property print.key=true <br/>
+ *     Consume messages from the "pageview-tumbling-output" topic (e.g. bin/kafka-console-consumer.sh)
+ *     ./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic pageview-tumbling-output --property print.key=true <br/>
  *   </li>
  * </ol>
  *
@@ -66,8 +68,8 @@ import java.util.function.Function;
 public class TumblingPageViewCounterApp implements StreamApplication {
 
   private static final Logger LOG = LoggerFactory.getLogger(TumblingPageViewCounterApp.class);
-  private static final String INPUT_TOPIC = "pageviews";
-  private static final String OUTPUT_TOPIC = "pageviews-by-region";
+  private static final String INPUT_TOPIC = "pageview-tumbling-input";
+  private static final String OUTPUT_TOPIC = "pageview-tumbling-output";
 
   @Override
   public void init(StreamGraph graph, Config config) {
