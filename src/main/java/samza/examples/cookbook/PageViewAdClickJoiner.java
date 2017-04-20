@@ -85,11 +85,11 @@ public class PageViewAdClickJoiner implements StreamApplication {
     OutputStream<String, String, String> outputStream = graph
         .getOutputStream(OUTPUT_TOPIC, m -> "", m -> m);
 
-    Function<String, String> keyFn1 = pageView -> new PageView(pageView).getPageId();
-    Function<String, String> keyFn2 = adClick -> new AdClick(adClick).getPageId();
+    Function<String, String> pageViewKeyFn = pageView -> new PageView(pageView).getPageId();
+    Function<String, String> adClickKeyFn = adClick -> new AdClick(adClick).getPageId();
 
-    MessageStream<String> pageViewRepartitioned = pageViews.partitionBy(keyFn1);
-    MessageStream<String> adClickRepartitioned = adClicks.partitionBy(keyFn2);
+    MessageStream<String> pageViewRepartitioned = pageViews.partitionBy(pageViewKeyFn);
+    MessageStream<String> adClickRepartitioned = adClicks.partitionBy(adClickKeyFn);
 
     pageViewRepartitioned.join(adClickRepartitioned, new JoinFunction<String, String, String, String>() {
 
