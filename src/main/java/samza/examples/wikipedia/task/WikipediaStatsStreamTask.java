@@ -36,6 +36,8 @@ import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.WindowableTask;
 
 public class WikipediaStatsStreamTask implements StreamTask, InitableTask, WindowableTask {
+  private static final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "wikipedia-stats");
+
   private int edits = 0;
   private int byteDiff = 0;
   private Set<String> titles = new HashSet<String>();
@@ -81,7 +83,7 @@ public class WikipediaStatsStreamTask implements StreamTask, InitableTask, Windo
     counts.put("unique-titles", titles.size());
     counts.put("edits-all-time", store.get("count-edits-all-time"));
 
-    collector.send(new OutgoingMessageEnvelope(new SystemStream("kafka", "wikipedia-stats"), counts));
+    collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, counts));
 
     // Reset counts after windowing.
     edits = 0;
