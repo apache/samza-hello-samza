@@ -32,7 +32,6 @@ import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
 import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.functions.FoldLeftFunction;
-import org.apache.samza.operators.functions.MapFunction;
 import org.apache.samza.operators.windows.WindowPane;
 import org.apache.samza.operators.windows.Windows;
 import org.apache.samza.storage.kv.KeyValueStore;
@@ -41,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import samza.examples.wikipedia.model.WikipediaParser;
 import samza.examples.wikipedia.system.WikipediaFeed.WikipediaFeedEvent;
+
 
 public class WikipediaApplication implements StreamApplication {
   private static final Logger log = LoggerFactory.getLogger(WikipediaApplication.class);
@@ -52,7 +52,6 @@ public class WikipediaApplication implements StreamApplication {
   private static final String WIKTIONARY_STREAM_ID = "en-wiktionary";
   private static final String WIKINEWS_STREAM_ID = "en-wikinews";
   private static final String STATS_STREAM_ID = "wikipedia-stats";
-
 
   @Override
   public void init(StreamGraph graph, Config config) {
@@ -70,10 +69,9 @@ public class WikipediaApplication implements StreamApplication {
     MessageStream<WikipediaFeedEvent> allWikipediaEvents = wikipediaEvents.merge(new ArrayList(Arrays.asList(new MessageStream[]{wiktionaryEvents, wikiNewsEvents})));
 
     // Parse, update stats, prepare output, and send
-    allWikipediaEvents
-        .map(WikipediaParser::parseEvent)
+    allWikipediaEvents.map(WikipediaParser::parseEvent)
         .window(Windows.tumblingWindow(Duration.ofSeconds(10), WindowedStats::new, new WikipediaWindow()))
-        .map(new OutputFunction())
+        .map(this::formatOutput)
         .sendTo(wikipediaStats);
   }
 
@@ -85,6 +83,8 @@ public class WikipediaApplication implements StreamApplication {
     int byteDiff = 0;
     Set<String> titles = new HashSet<String>();
     Map<String, Integer> counts = new HashMap<String, Integer>();
+
+    int totalEdits = 0;
 
     @Override
     public String toString() {
@@ -106,21 +106,21 @@ public class WikipediaApplication implements StreamApplication {
 
     @Override
     public WindowedStats apply(Map<String, Object> edit, WindowedStats stats) {
-      log.info("In window.apply");
+      log.debug("In window.apply");
 
-      Integer editsAllTime = store.get(EDIT_COUNT_KEY);
-      if (editsAllTime == null) {
-        editsAllTime = 0;
+      Integer totalEdits = store.get(EDIT_COUNT_KEY);
+      if (totalEdits == null) {
+        totalEdits = 0;
       }
+      log.debug("Before window: " + stats.toString());
+      log.debug("Before total: " + totalEdits);
 
-      log.info("Before window: " + stats.toString());
-      log.info("Before total: " + editsAllTime);
-
-      editsAllTime++;
-      store.put(EDIT_COUNT_KEY, editsAllTime);
+      totalEdits++;
+      store.put(EDIT_COUNT_KEY, totalEdits);
       stats.edits++;
       stats.titles.add((String) edit.get("title"));
       stats.byteDiff += (Integer) edit.get("diff-bytes");
+      stats.totalEdits = totalEdits;
 
       Map<String, Boolean> flags = (Map<String, Boolean>) edit.get("flags");
       for (Map.Entry<String, Boolean> flag : flags.entrySet()) {
@@ -129,8 +129,8 @@ public class WikipediaApplication implements StreamApplication {
         }
       }
 
-      log.info("After window: " + stats.toString());
-      log.info("After total: " + editsAllTime);
+      log.debug("After window: " + stats.toString());
+      log.debug("After total: " + totalEdits);
       return stats;
     }
   }
@@ -138,30 +138,20 @@ public class WikipediaApplication implements StreamApplication {
   /**
    *
    */
-  private static class OutputFunction implements MapFunction<WindowPane<Void, WindowedStats>, Map<String, Integer>> {
-    private KeyValueStore<String, Integer> store;
+  private Map<String, Integer> formatOutput(WindowPane<Void, WindowedStats> statsWindowPane) {
+    log.debug("In outputfn.apply");
 
-    @Override
-    public void init(Config config, TaskContext context) {
-      store = (KeyValueStore<String, Integer>) context.getStore(STATS_STORE_NAME);
-    }
+    WindowedStats stats = statsWindowPane.getMessage();
 
-    @Override
-    public Map<String, Integer> apply(WindowPane<Void, WindowedStats> statsWindowPane) {
-      log.info("In outputfn.apply");
+    Map<String, Integer> counts = new HashMap<String, Integer>();
+    counts.put("edits", stats.edits);
+    counts.put("bytes-added", stats.byteDiff);
+    counts.put("unique-titles", stats.titles.size());
+    counts.put("edits-all-time", stats.totalEdits);
 
-      WindowedStats stats = statsWindowPane.getMessage();
-
-      Map<String, Integer> counts = new HashMap<String, Integer>();
-      counts.put("edits", stats.edits);
-      counts.put("bytes-added", stats.byteDiff);
-      counts.put("unique-titles", stats.titles.size());
-      counts.put("edits-all-time", store.get(EDIT_COUNT_KEY));
-
-      log.info("window: " + stats.toString());
-      log.info("total: " + store.get(EDIT_COUNT_KEY));
-      return counts;
-    }
+    log.debug("window: " + stats.toString());
+    log.debug("total: " + stats.totalEdits);
+    return counts;
   }
 }
 
