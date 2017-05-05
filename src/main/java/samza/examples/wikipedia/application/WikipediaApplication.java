@@ -72,7 +72,7 @@ public class WikipediaApplication implements StreamApplication {
   private static final String WIKIPEDIA_STREAM_ID = "en-wikipedia";
   private static final String WIKTIONARY_STREAM_ID = "en-wiktionary";
   private static final String WIKINEWS_STREAM_ID = "en-wikinews";
-  
+
   private static final String STATS_STREAM_ID = "wikipedia-stats";
 
   @Override
@@ -141,8 +141,6 @@ public class WikipediaApplication implements StreamApplication {
 
     @Override
     public WikipediaStats apply(Map<String, Object> edit, WikipediaStats stats) {
-      log.debug("In WikipediaStatsAggregator.apply");
-      log.debug("Stats before edit: {}", stats);
 
       // Update persisted total
       Integer editsAllTime = store.get(EDIT_COUNT_KEY);
@@ -167,7 +165,6 @@ public class WikipediaApplication implements StreamApplication {
         repeatEdits.inc();
         log.info("Frequent edits for title: {}", edit.get("title"));
       }
-      log.debug("Stats after edit: {}", stats);
       return stats;
     }
   }
@@ -176,7 +173,6 @@ public class WikipediaApplication implements StreamApplication {
    * Format the stats for output to Kafka.
    */
   private Map<String, Integer> formatOutput(WindowPane<Void, WikipediaStats> statsWindowPane) {
-    log.debug("In formatOutput()");
 
     WikipediaStats stats = statsWindowPane.getMessage();
 
@@ -186,7 +182,6 @@ public class WikipediaApplication implements StreamApplication {
     counts.put("bytes-added", stats.byteDiff);
     counts.put("unique-titles", stats.titles.size());
 
-    log.debug("Stats: {}", stats);
     return counts;
   }
 }
