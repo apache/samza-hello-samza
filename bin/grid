@@ -62,6 +62,12 @@ install_all() {
   $DIR/grid install kafka
 }
 
+install_local() {
+  $DIR/grid install samza
+  $DIR/grid install zookeeper
+  $DIR/grid install kafka
+}
+
 install_samza() {
   mkdir -p "$DEPLOY_ROOT_DIR"
   if [ -d "$DOWNLOAD_CACHE_DIR/samza/.git" ]; then
@@ -128,6 +134,11 @@ start_all() {
   $DIR/grid start kafka
 }
 
+start_local() {
+  $DIR/grid start zookeeper
+  $DIR/grid start kafka
+}
+
 start_zookeeper() {
   if [ -f $DEPLOY_ROOT_DIR/$SYSTEM/bin/zkServer.sh ]; then
     cd $DEPLOY_ROOT_DIR/$SYSTEM
@@ -182,6 +193,11 @@ wait_for_service() {
 stop_all() {
   $DIR/grid stop kafka
   $DIR/grid stop yarn
+  $DIR/grid stop zookeeper
+}
+
+stop_local() {
+  $DIR/grid stop kafka
   $DIR/grid stop zookeeper
 }
 
