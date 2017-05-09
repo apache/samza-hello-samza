@@ -29,7 +29,7 @@ import org.apache.samza.util.Util;
 
 
 /**
- * A stand alone runner for running {@link samza.examples.wikipedia.application.WikipediaApplication} locally.
+ * A stand alone runner for running stand alone samza applications locally using zookeeper.
  * It waits for the job to finish; The job can also be ended by killing this runner.
  */
 public class StandAloneRunner {
