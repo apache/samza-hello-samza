@@ -17,24 +17,20 @@
  * under the License.
  */
 
-package samza.examples.runners;
+package samza.examples.wikipedia.application;
 
 import joptsimple.OptionSet;
-import org.apache.samza.application.StreamApplication;
 import org.apache.samza.config.Config;
-import org.apache.samza.runtime.ApplicationRunnerMain;
 import org.apache.samza.runtime.LocalApplicationRunner;
 import org.apache.samza.util.CommandLine;
 import org.apache.samza.util.Util;
 
 
 /**
- * A stand alone runner for running stand alone samza applications locally using zookeeper.
- * It waits for the job to finish; The job can also be ended by killing this runner.
+ * An entry point for {@link WikipediaApplication} that runs in stand alone mode using zookeeper.
+ * It waits for the job to finish; The job can also be ended by killing this process.
  */
-public class StandAloneRunner {
-
-  private static final String STREAM_APPLICATION_CLASS_CONFIG = "app.class";
+public class WikipediaZkLocalApplication {
 
   public static void main(String[] args) throws Exception {
     CommandLine cmdLine = new CommandLine();
@@ -42,15 +38,10 @@ public class StandAloneRunner {
     Config orgConfig = cmdLine.loadConfig(options);
     Config config = Util.rewriteConfig(orgConfig);
 
-    if (config.containsKey(STREAM_APPLICATION_CLASS_CONFIG)) {
-      LocalApplicationRunner runner = new LocalApplicationRunner(config);
-      StreamApplication app =
-          (StreamApplication) Class.forName(config.get(STREAM_APPLICATION_CLASS_CONFIG)).newInstance();
+    LocalApplicationRunner runner = new LocalApplicationRunner(config);
+    WikipediaApplication app = new WikipediaApplication();
 
-      runner.run(app);
-      runner.waitForFinish();
-    } else {
-      throw new RuntimeException("Missing app.class configuration. Either provide the configuration or use" + ApplicationRunnerMain.class.getName());
-    }
+    runner.run(app);
+    runner.waitForFinish();
   }
 }
