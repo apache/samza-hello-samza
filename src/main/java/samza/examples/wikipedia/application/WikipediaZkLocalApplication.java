@@ -43,8 +43,7 @@ public class WikipediaZkLocalApplication {
   public static void main(String[] args) {
     CommandLine cmdLine = new CommandLine();
     OptionSet options = cmdLine.parser().parse(args);
-    Config orgConfig = cmdLine.loadConfig(options);
-    Config config = Util.rewriteConfig(orgConfig);
+    Config config = cmdLine.loadConfig(options);
 
     LocalApplicationRunner runner = new LocalApplicationRunner(config);
     WikipediaApplication app = new WikipediaApplication();
