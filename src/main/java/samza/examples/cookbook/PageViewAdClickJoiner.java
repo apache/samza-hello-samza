@@ -78,9 +78,14 @@ public class PageViewAdClickJoiner implements StreamApplication {
 
   @Override
   public void init(StreamGraph graph, Config config) {
-    MessageStream<PageView> pageViews = graph.getInputStream(PAGEVIEW_TOPIC, new JsonSerdeV2<>(PageView.class));
-    MessageStream<AdClick> adClicks = graph.getInputStream(AD_CLICK_TOPIC, new JsonSerdeV2<>(AdClick.class));
-    OutputStream<JoinResult> joinResults = graph.getOutputStream(OUTPUT_TOPIC, new JsonSerdeV2<>(JoinResult.class));
+    StringSerde stringSerde = new StringSerde();
+    JsonSerdeV2<PageView> pageViewSerde = new JsonSerdeV2<>(PageView.class);
+    JsonSerdeV2<AdClick> adClickSerde = new JsonSerdeV2<>(AdClick.class);
+    JsonSerdeV2<JoinResult> joinResultSerde = new JsonSerdeV2<>(JoinResult.class);
+
+    MessageStream<PageView> pageViews = graph.getInputStream(PAGEVIEW_TOPIC, pageViewSerde);
+    MessageStream<AdClick> adClicks = graph.getInputStream(AD_CLICK_TOPIC, adClickSerde);
+    OutputStream<JoinResult> joinResults = graph.getOutputStream(OUTPUT_TOPIC, joinResultSerde);
 
     JoinFunction<String, PageView, AdClick, JoinResult> pageViewAdClickJoinFunction =
         new JoinFunction<String, PageView, AdClick, JoinResult>() {
@@ -102,16 +107,17 @@ public class PageViewAdClickJoiner implements StreamApplication {
 
     MessageStream<PageView> repartitionedPageViews =
         pageViews
-            .partitionBy(pv -> pv.pageId, pv -> pv, KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class)))
+            .partitionBy(pv -> pv.pageId, pv -> pv, KVSerde.of(stringSerde, pageViewSerde))
             .map(KV::getValue);
 
     MessageStream<AdClick> repartitionedAdClicks =
         adClicks
-            .partitionBy(AdClick::getPageId, ac -> ac, KVSerde.of(new StringSerde(), new JsonSerdeV2<>(AdClick.class)))
+            .partitionBy(AdClick::getPageId, ac -> ac, KVSerde.of(stringSerde, adClickSerde))
             .map(KV::getValue);
 
     repartitionedPageViews
-        .join(repartitionedAdClicks, pageViewAdClickJoinFunction, Duration.ofMinutes(3))
+        .join(repartitionedAdClicks, pageViewAdClickJoinFunction,
+            stringSerde, pageViewSerde, adClickSerde, Duration.ofMinutes(3))
         .sendTo(joinResults);
   }
 
