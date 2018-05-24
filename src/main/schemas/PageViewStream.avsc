@@ -1,0 +1,32 @@
+{
+  "name": "PageViewEvent",
+  "version" : 1,
+  "namespace": "com.linkedin.samza.tools.avro",
+  "type": "record",
+  "fields": [
+    {
+      "name": "id",
+      "doc": "Record id.",
+      "type": ["null", "int"],
+      "default":null
+    },
+    {
+      "name": "Name",
+      "doc": "Name of the profile.",
+      "type": ["null", "string"],
+      "default":null
+    },
+    {
+      "name": "ViewerName",
+      "doc": "Name of the person who viewed the profile.",
+      "type": ["null", "string"],
+      "default":null
+    },
+    {
+      "name": "ProfileViewTimestamp",
+      "doc": "Time at which the profile was viewed.",
+      "type": ["null", "long"],
+      "default":null
+    }
+  ]
+}
