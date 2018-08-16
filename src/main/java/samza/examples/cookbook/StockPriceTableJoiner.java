@@ -89,16 +89,16 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class StockPriceTableJoiner implements StreamApplication {
 
   /**
-   * Default API key "demo" only works with symbol "MSFT"; however you can get an
+   * Default API key "demo" only works for symbol "MSFT"; however you can get an
    * API key for free at https://www.alphavantage.co/, which will work for other symbols.
    */
-  static final private String API_KEY = "demo";
+  private static final String API_KEY = "demo";
 
-  static final private String URL_TEMPLATE =
+  private static final String URL_TEMPLATE =
       "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=" + API_KEY;
 
-  static final private String INPUT_TOPIC = "stock-symbol-input";
-  static final private String OUTPUT_TOPIC = "stock-price-output";
+  private static final String INPUT_TOPIC = "stock-symbol-input";
+  private static final String OUTPUT_TOPIC = "stock-price-output";
 
   @Override
   public void init(StreamGraph graph, Config config) {
