@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>0.14.1-SNAPSHOT</version>
+  <version>0.15.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
@@ -143,12 +143,17 @@ under the License.
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>17.0</version>
+    </dependency>
   </dependencies>
 
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>0.14.1-SNAPSHOT</samza.version>
+    <samza.version>0.15.0-SNAPSHOT</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
