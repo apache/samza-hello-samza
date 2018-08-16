@@ -47,7 +47,13 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * which delivers latest stock quotes. The join results contain stock symbol and latest price, and are
  * delivered to an output stream.
  *
- * <p> Concepts covered: Performing stream to table joins.
+ * A rate limit of 10 requests/second is set of the entire job, internally Samza uses an embedded
+ * rate limiter, which evenly distributes the total rate limit among tasks.
+ *
+ * A caching table is used over the remote table with a read TTL of 5 seconds, therefore one would
+ * receive the same quote with this time span.
+ *
+ * <p> Concepts covered: remote table, rate limiter, caching table, stream to table joins.
  *
  * To run the below example:
  *
