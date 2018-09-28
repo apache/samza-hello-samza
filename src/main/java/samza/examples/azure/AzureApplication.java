@@ -19,12 +19,15 @@
 
 package samza.examples.azure;
 
+import java.util.HashMap;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
+import org.apache.samza.operators.descriptors.GenericInputDescriptor;
+import org.apache.samza.operators.descriptors.GenericOutputDescriptor;
+import org.apache.samza.operators.descriptors.GenericSystemDescriptor;
 import org.apache.samza.serializers.ByteSerde;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
@@ -38,14 +41,25 @@ public class AzureApplication implements StreamApplication {
   private static final String OUTPUT_STREAM_ID = "output-stream";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor appDescriptor) {
+    HashMap<String, String> systemConfigs = new HashMap<>();
+
+    GenericSystemDescriptor systemDescriptor =
+        new GenericSystemDescriptor("eventhubs", "org.apache.samza.system.eventhub.EventHubSystemFactory");
+
+    KVSerde<String, byte[]> serde = KVSerde.of(new StringSerde(), new ByteSerde());
+
+    GenericInputDescriptor<KV<String, byte[]>> inputDescriptor =
+        systemDescriptor.getInputDescriptor(INPUT_STREAM_ID, serde);
+
+    GenericOutputDescriptor<KV<String, byte[]>> outputDescriptor =
+        systemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, serde);
+
 
     // Input
-    MessageStream<KV<String, byte[]>> eventhubInput = graph.getInputStream(INPUT_STREAM_ID);
-
+    MessageStream<KV<String, byte[]>> eventhubInput = appDescriptor.getInputStream(inputDescriptor);
     // Output
-    OutputStream<KV<String, byte[]>> eventhubOutput =
-        graph.getOutputStream(OUTPUT_STREAM_ID, KVSerde.of(new StringSerde(), new ByteSerde()));
+    OutputStream<KV<String, byte[]>> eventhubOutput = appDescriptor.getOutputStream(outputDescriptor);
 
     // Send
     eventhubInput

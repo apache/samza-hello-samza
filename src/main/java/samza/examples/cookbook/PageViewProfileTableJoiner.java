@@ -19,20 +19,28 @@
 package samza.examples.cookbook;
 
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
+import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.functions.StreamTableJoinFunction;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.serializers.StringSerde;
 import org.apache.samza.storage.kv.RocksDbTableDescriptor;
+import org.apache.samza.system.kafka.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.KafkaSystemDescriptor;
 import org.apache.samza.table.Table;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import samza.examples.cookbook.data.PageView;
 import samza.examples.cookbook.data.Profile;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * In this example, we join a stream of Page views with a table of user profiles, which is populated from an
@@ -73,29 +81,49 @@ import samza.examples.cookbook.data.Profile;
  *
  */
 public class PageViewProfileTableJoiner implements StreamApplication {
+  private static final String KAFKA_SYSTEM_NAME = "kafka";
+  private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
+  private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
+  private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
-  private static final String PROFILE_TOPIC = "profile-table-input";
-  private static final String PAGEVIEW_TOPIC = "pageview-join-input";
+  private static final String PROFILE_STREAM_ID = "profile-table-input";
+  private static final String PAGEVIEW_STREAM_ID = "pageview-join-input";
   private static final String OUTPUT_TOPIC = "enriched-pageview-join-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
-
+  public void describe(StreamApplicationDescriptor appDescriptor) {
     Serde<Profile> profileSerde = new JsonSerdeV2<>(Profile.class);
     Serde<PageView> pageViewSerde = new JsonSerdeV2<>(PageView.class);
+    Serde<EnrichedPageView> joinResultSerde = new JsonSerdeV2<>(EnrichedPageView.class);
 
-    OutputStream<EnrichedPageView> joinResultStream = graph.getOutputStream(
-        OUTPUT_TOPIC, new JsonSerdeV2<>(EnrichedPageView.class));
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor(KAFKA_SYSTEM_NAME)
+        .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
+        .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
+        .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
 
-    Table profileTable = graph.getTable(new RocksDbTableDescriptor<String, Profile>("profile-table")
-        .withSerde(KVSerde.of(new StringSerde(), profileSerde)));
+    KafkaInputDescriptor<Profile> profileInputDescriptor =
+        kafkaSystemDescriptor.getInputDescriptor(PROFILE_STREAM_ID, profileSerde);
+    KafkaInputDescriptor<PageView> pageViewInputDescriptor =
+        kafkaSystemDescriptor.getInputDescriptor(PAGEVIEW_STREAM_ID, pageViewSerde);
+    KafkaOutputDescriptor<EnrichedPageView> joinResultOutputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_TOPIC, joinResultSerde);
 
-    graph.getInputStream(PROFILE_TOPIC, profileSerde)
+    RocksDbTableDescriptor<String, Profile> profileTableDescriptor =
+        new RocksDbTableDescriptor<String, Profile>("profile-table", KVSerde.of(new StringSerde(), profileSerde));
+
+    appDescriptor.withDefaultSystem(kafkaSystemDescriptor);
+
+    MessageStream<Profile> profileStream = appDescriptor.getInputStream(profileInputDescriptor);
+    MessageStream<PageView> pageViewStream = appDescriptor.getInputStream(pageViewInputDescriptor);
+    OutputStream<EnrichedPageView> joinResultStream = appDescriptor.getOutputStream(joinResultOutputDescriptor);
+    Table<KV<String, Profile>> profileTable = appDescriptor.getTable(profileTableDescriptor);
+
+    profileStream
         .map(profile -> KV.of(profile.userId, profile))
         .sendTo(profileTable);
 
-    graph.getInputStream(PAGEVIEW_TOPIC, pageViewSerde)
-        .partitionBy(pv -> pv.userId, pv -> pv, new KVSerde(new StringSerde(), pageViewSerde), "join")
+    pageViewStream
+        .partitionBy(pv -> pv.userId, pv -> pv, KVSerde.of(new StringSerde(), pageViewSerde), "join")
         .join(profileTable, new JoinFn())
         .sendTo(joinResultStream);
   }

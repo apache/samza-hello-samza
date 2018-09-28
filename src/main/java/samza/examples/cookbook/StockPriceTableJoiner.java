@@ -18,19 +18,27 @@
  */
 package samza.examples.cookbook;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import java.io.Serializable;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.apache.samza.SamzaException;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
+import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.functions.StreamTableJoinFunction;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.KafkaSystemDescriptor;
 import org.apache.samza.table.Table;
 import org.apache.samza.table.caching.CachingTableDescriptor;
 import org.apache.samza.table.remote.RemoteTableDescriptor;
@@ -87,6 +95,10 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  */
 public class StockPriceTableJoiner implements StreamApplication {
+  private static final String KAFKA_SYSTEM_NAME = "kafka";
+  private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
+  private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
+  private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
   /**
    * Default API key "demo" only works for symbol "MSFT"; however you can get an
@@ -97,27 +109,37 @@ public class StockPriceTableJoiner implements StreamApplication {
   private static final String URL_TEMPLATE =
       "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=" + API_KEY;
 
-  private static final String INPUT_TOPIC = "stock-symbol-input";
-  private static final String OUTPUT_TOPIC = "stock-price-output";
+  private static final String INPUT_STREAM_ID = "stock-symbol-input";
+  private static final String OUTPUT_STREAM_ID = "stock-price-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor appDescriptor) {
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor(KAFKA_SYSTEM_NAME)
+        .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
+        .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
+        .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
 
-    Table remoteTable = graph.getTable(new RemoteTableDescriptor("remote-table")
-        .withReadRateLimit(10)
-        .withReadFunction(new StockPriceReadFunction()));
+    KafkaInputDescriptor<String> stockSymbolInputDescriptor =
+        kafkaSystemDescriptor.getInputDescriptor(INPUT_STREAM_ID, new StringSerde());
+    KafkaOutputDescriptor<StockPrice> stockPriceOutputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, new JsonSerdeV2<>(StockPrice.class));
+    MessageStream<String> stockSymbolStream = appDescriptor.getInputStream(stockSymbolInputDescriptor);
+    OutputStream<StockPrice> stockPriceStream = appDescriptor.getOutputStream(stockPriceOutputDescriptor);
 
-    Table table = graph.getTable(new CachingTableDescriptor("table")
-        .withTable(remoteTable)
-        .withReadTtl(Duration.ofSeconds(5)));
+    RemoteTableDescriptor<String, Double> remoteTableDescriptor =
+        new RemoteTableDescriptor("remote-table")
+            .withReadRateLimit(10)
+            .withReadFunction(new StockPriceReadFunction());
+    CachingTableDescriptor<String, Double> cachedRemoteTableDescriptor =
+        new CachingTableDescriptor<String, Double>("cached-remote-table")
+            .withTable(remoteTableDescriptor)
+            .withReadTtl(Duration.ofSeconds(5));
+    Table<KV<String, Double>> cachedRemoteTable = appDescriptor.getTable(cachedRemoteTableDescriptor);
 
-    OutputStream<StockPrice> joinResultStream = graph.getOutputStream(
-        OUTPUT_TOPIC, new JsonSerdeV2<>(StockPrice.class));
-
-    graph.getInputStream(INPUT_TOPIC, new StringSerde())
+    stockSymbolStream
         .map(symbol -> new KV<String, Void>(symbol, null))
-        .join(table, new JoinFn())
-        .sendTo(joinResultStream);
+        .join(cachedRemoteTable, new JoinFn())
+        .sendTo(stockPriceStream);
 
   }
 
@@ -154,6 +176,11 @@ public class StockPriceTableJoiner implements StreamApplication {
           throw new SamzaException(ex);
         }
       });
+    }
+
+    @Override
+    public boolean isRetriable(Throwable throwable) {
+      return false;
     }
   }
 
