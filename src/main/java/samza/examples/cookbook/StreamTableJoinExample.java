@@ -59,7 +59,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/pageview-profile-table-joiner.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/stream-table-join-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "profile-table-input" topic with the same userId <br/>
@@ -80,7 +80,7 @@ import java.util.Map;
  * </ol>
  *
  */
-public class PageViewProfileTableJoiner implements StreamApplication {
+public class StreamTableJoinExample implements StreamApplication {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -128,7 +128,7 @@ public class PageViewProfileTableJoiner implements StreamApplication {
         .sendTo(joinResultStream);
   }
 
-  private class JoinFn implements StreamTableJoinFunction<String, KV<String, PageView>, KV<String, Profile>, EnrichedPageView> {
+  private static class JoinFn implements StreamTableJoinFunction<String, KV<String, PageView>, KV<String, Profile>, EnrichedPageView> {
     @Override
     public EnrichedPageView apply(KV<String, PageView> message, KV<String, Profile> record) {
       return record == null ? null :

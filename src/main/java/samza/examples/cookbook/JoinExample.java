@@ -18,6 +18,7 @@
  */
 package samza.examples.cookbook;
 
+import java.io.Serializable;
 import org.apache.samza.application.StreamApplication;
 import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
@@ -56,7 +57,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/pageview-adclick-joiner.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/join-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-join-input" topic <br/>
@@ -77,7 +78,7 @@ import java.util.Map;
  * </ol>
  *
  */
-public class PageViewAdClickJoiner implements StreamApplication {
+public class JoinExample implements StreamApplication, Serializable {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");

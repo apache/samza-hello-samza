@@ -73,7 +73,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/stock-price-table-joiner.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/remote-table-join-example.properties
  *   </li>
  *   <li>
  *     Consume messages from the output topic <br/>
@@ -94,7 +94,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * </ol>
  *
  */
-public class StockPriceTableJoiner implements StreamApplication {
+public class RemoteTableJoinExample implements StreamApplication {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
