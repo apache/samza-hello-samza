@@ -18,6 +18,7 @@
  */
 package samza.examples.cookbook;
 
+import java.io.Serializable;
 import org.apache.samza.application.StreamApplication;
 import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
@@ -58,7 +59,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/tumbling-pageview-counter.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/tumbling-window-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-tumbling-input" topic, waiting for some time between messages <br/>
@@ -77,7 +78,7 @@ import java.util.Map;
  * </ol>
  *
  */
-public class TumblingPageViewCounterApp implements StreamApplication {
+public class TumblingWindowExample implements StreamApplication, Serializable {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -106,7 +107,7 @@ public class TumblingPageViewCounterApp implements StreamApplication {
     OutputStream<KV<String, UserPageViews>> outputStream = appDescriptor.getOutputStream(userPageViewOutputDescriptor);
 
     pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "userId")
+        .partitionBy(kv -> kv.value.userId, kv -> kv.value, pageViewSerde, "userId")
         .window(Windows.keyedTumblingWindow(
             kv -> kv.key, Duration.ofSeconds(5), () -> 0, (m, prevCount) -> prevCount + 1,
             new StringSerde(), new IntegerSerde()), "count")

@@ -18,6 +18,7 @@
  */
 package samza.examples.cookbook;
 
+import java.io.Serializable;
 import org.apache.samza.application.StreamApplication;
 import org.apache.samza.application.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
@@ -56,7 +57,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/pageview-sessionizer.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/session-window-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-session-input" topic <br/>
@@ -75,7 +76,7 @@ import java.util.Map;
  * </ol>
  *
  */
-public class PageViewSessionizerApp implements StreamApplication {
+public class SessionWindowExample implements StreamApplication, Serializable {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -87,8 +88,8 @@ public class PageViewSessionizerApp implements StreamApplication {
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
     Serde<String> stringSerde = new StringSerde();
-    Serde<KV<String, PageView>> pageViewKVSerde = KVSerde.of(stringSerde, new JsonSerdeV2<>(PageView.class));
-    Serde<KV<String, UserPageViews>> userPageViewSerde = KVSerde.of(stringSerde, new JsonSerdeV2<>(UserPageViews.class));
+    KVSerde<String, PageView> pageViewKVSerde = KVSerde.of(stringSerde, new JsonSerdeV2<>(PageView.class));
+    KVSerde<String, UserPageViews> userPageViewSerde = KVSerde.of(stringSerde, new JsonSerdeV2<>(UserPageViews.class));
 
     KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor(KAFKA_SYSTEM_NAME)
         .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
@@ -106,7 +107,7 @@ public class PageViewSessionizerApp implements StreamApplication {
     OutputStream<KV<String, UserPageViews>> userPageViews = appDescriptor.getOutputStream(userPageViewsOutputDescriptor);
 
     pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "pageview")
+        .partitionBy(kv -> kv.value.userId, kv -> kv.value, pageViewKVSerde, "pageview")
         .window(Windows.keyedSessionWindow(kv -> kv.value.userId,
             Duration.ofSeconds(10), stringSerde, pageViewKVSerde), "usersession")
         .map(windowPane -> {

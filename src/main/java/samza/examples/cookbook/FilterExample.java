@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * In this example, we demonstrate re-partitioning a stream of page views and filtering out some bad events in the stream.
+ * In this example, we demonstrate filtering out some bad events in the stream.
  *
- * <p>Concepts covered: Using stateless operators on a stream, Re-partitioning a stream.
+ * <p>Concepts covered: Using stateless operators on a stream.
  *
  * To run the below example:
  *
@@ -51,7 +51,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/pageview-filter.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/filter-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-filter-input" topic <br/>
@@ -66,7 +66,7 @@ import java.util.Map;
  *   </li>
  * </ol>
  */
-public class PageViewFilterApp implements StreamApplication {
+public class FilterExample implements StreamApplication {
   private static final String KAFKA_SYSTEM_NAME = "kafka";
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -95,7 +95,6 @@ public class PageViewFilterApp implements StreamApplication {
     OutputStream<KV<String, PageView>> filteredPageViews = appDescriptor.getOutputStream(outputDescriptor);
 
     pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "pageview")
         .filter(kv -> !INVALID_USER_ID.equals(kv.value.userId))
         .sendTo(filteredPageViews);
   }
