@@ -17,10 +17,12 @@
  * under the License.
  */
 
-package samza.examples.wikipedia.system;
+package samza.examples.wikipedia.system.descriptors;
+
+import samza.examples.wikipedia.system.WikipediaSystemFactory;
 
 import java.util.Map;
-import org.apache.samza.operators.descriptors.base.system.SystemDescriptor;
+import org.apache.samza.system.descriptors.SystemDescriptor;
 
 public class WikipediaSystemDescriptor extends SystemDescriptor<WikipediaSystemDescriptor> {
   private static final String SYSTEM_NAME = "wikipedia";

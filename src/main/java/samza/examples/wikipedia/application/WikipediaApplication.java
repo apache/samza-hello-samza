@@ -22,29 +22,28 @@ package samza.examples.wikipedia.application;
 import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.application.StreamApplicationDescriptor;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
+import org.apache.samza.context.Context;
+import org.apache.samza.context.TaskContext;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
 import org.apache.samza.operators.functions.FoldLeftFunction;
-import org.apache.samza.operators.functions.SupplierFunction;
 import org.apache.samza.operators.windows.WindowPane;
 import org.apache.samza.operators.windows.Windows;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.storage.kv.KeyValueStore;
-import org.apache.samza.system.kafka.KafkaOutputDescriptor;
-import org.apache.samza.system.kafka.KafkaSystemDescriptor;
-import org.apache.samza.task.TaskContext;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import samza.examples.wikipedia.model.WikipediaParser;
 import samza.examples.wikipedia.system.WikipediaFeed.WikipediaFeedEvent;
-import samza.examples.wikipedia.system.WikipediaInputDescriptor;
-import samza.examples.wikipedia.system.WikipediaSystemDescriptor;
+import samza.examples.wikipedia.system.descriptors.WikipediaInputDescriptor;
+import samza.examples.wikipedia.system.descriptors.WikipediaSystemDescriptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -141,13 +140,14 @@ public class WikipediaApplication implements StreamApplication, Serializable {
 
     /**
      * {@inheritDoc}
-     * Override {@link org.apache.samza.operators.functions.InitableFunction#init(Config, TaskContext)} to
+     * Override {@link org.apache.samza.operators.functions.InitableFunction#init(Context)} to
      * get a KeyValueStore for persistence and the MetricsRegistry for metrics.
      */
     @Override
-    public void init(Config config, TaskContext context) {
-      store = (KeyValueStore<String, Integer>) context.getStore("wikipedia-stats");
-      repeatEdits = context.getMetricsRegistry().newCounter("edit-counters", "repeat-edits");
+    public void init(Context context) {
+      TaskContext taskContext = context.getTaskContext();
+      store = (KeyValueStore<String, Integer>) taskContext.getStore("wikipedia-stats");
+      repeatEdits = taskContext.getTaskMetricsRegistry().newCounter("edit-counters", "repeat-edits");
     }
 
     @Override

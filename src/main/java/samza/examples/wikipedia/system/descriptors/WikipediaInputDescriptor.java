@@ -17,13 +17,14 @@
  * under the License.
  */
 
-package samza.examples.wikipedia.system;
+package samza.examples.wikipedia.system.descriptors;
 
-import org.apache.samza.operators.descriptors.base.stream.InputDescriptor;
-import org.apache.samza.operators.descriptors.base.system.SystemDescriptor;
 import org.apache.samza.serializers.NoOpSerde;
 import org.apache.samza.serializers.Serde;
-import samza.examples.wikipedia.application.WikipediaApplication;
+import org.apache.samza.system.descriptors.InputDescriptor;
+import org.apache.samza.system.descriptors.SystemDescriptor;
+
+import samza.examples.wikipedia.system.WikipediaFeed;
 
 
 public class WikipediaInputDescriptor extends InputDescriptor<WikipediaFeed.WikipediaFeedEvent, WikipediaInputDescriptor> {

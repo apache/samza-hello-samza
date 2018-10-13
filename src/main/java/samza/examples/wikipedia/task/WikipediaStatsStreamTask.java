@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.samza.config.Config;
+import org.apache.samza.context.Context;
+import org.apache.samza.context.TaskContext;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.storage.kv.KeyValueStore;
 import org.apache.samza.system.IncomingMessageEnvelope;
@@ -32,7 +33,6 @@ import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.InitableTask;
 import org.apache.samza.task.MessageCollector;
 import org.apache.samza.task.StreamTask;
-import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.WindowableTask;
 
@@ -48,9 +48,10 @@ public class WikipediaStatsStreamTask implements StreamTask, InitableTask, Windo
   // Example metric. Running counter of the number of repeat edits of the same title within a single window.
   private Counter repeatEdits;
 
-  public void init(Config config, TaskContext context) {
-    this.store = (KeyValueStore<String, Integer>) context.getStore("wikipedia-stats");
-    this.repeatEdits = context.getMetricsRegistry().newCounter("edit-counters", "repeat-edits");
+  public void init(Context context) {
+    TaskContext taskContext = context.getTaskContext();
+    this.store = (KeyValueStore<String, Integer>) taskContext.getStore("wikipedia-stats");
+    this.repeatEdits = taskContext.getTaskMetricsRegistry().newCounter("edit-counters", "repeat-edits");
   }
 
   @SuppressWarnings("unchecked")

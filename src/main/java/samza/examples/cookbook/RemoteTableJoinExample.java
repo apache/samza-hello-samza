@@ -29,20 +29,20 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.apache.samza.SamzaException;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.application.StreamApplicationDescriptor;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
 import org.apache.samza.operators.functions.StreamTableJoinFunction;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.StringSerde;
-import org.apache.samza.system.kafka.KafkaInputDescriptor;
-import org.apache.samza.system.kafka.KafkaOutputDescriptor;
-import org.apache.samza.system.kafka.KafkaSystemDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.table.Table;
-import org.apache.samza.table.caching.CachingTableDescriptor;
-import org.apache.samza.table.remote.RemoteTableDescriptor;
+import org.apache.samza.table.caching.descriptors.CachingTableDescriptor;
 import org.apache.samza.table.remote.TableReadFunction;
+import org.apache.samza.table.remote.descriptors.RemoteTableDescriptor;
 import org.apache.samza.util.ExponentialSleepStrategy;
 import org.apache.samza.util.HttpUtil;
 import org.codehaus.jackson.JsonFactory;
@@ -131,8 +131,7 @@ public class RemoteTableJoinExample implements StreamApplication {
             .withReadRateLimit(10)
             .withReadFunction(new StockPriceReadFunction());
     CachingTableDescriptor<String, Double> cachedRemoteTableDescriptor =
-        new CachingTableDescriptor<String, Double>("cached-remote-table")
-            .withTable(remoteTableDescriptor)
+        new CachingTableDescriptor<>("cached-remote-table", remoteTableDescriptor)
             .withReadTtl(Duration.ofSeconds(5));
     Table<KV<String, Double>> cachedRemoteTable = appDescriptor.getTable(cachedRemoteTableDescriptor);
 
