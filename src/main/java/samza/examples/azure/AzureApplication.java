@@ -38,23 +38,22 @@ public class AzureApplication implements StreamApplication {
 
   // These properties could be configured here or in azure-application-local-runner.properties
   // Keep in mind that the .properties file will be overwrite properties defined here with Descriptors
-  private static final String EVENTHUBS_NAMESPACE = "YOUR-EVENT-HUBS-NAMESPACE";
+  private static final String EVENTHUBS_NAMESPACE = "my-eventhubs-namespace";
 
   // Upstream and downstream Event Hubs entity names
-  private static final String EVENTHUBS_INPUT_ENTITY = "YOUR-INPUT-ENTITY";
-  private static final String EVENTHUBS_OUTPUT_ENTITY = "YOUR-OUTPUT-ENTITY";
+  private static final String EVENTHUBS_INPUT_ENTITY = "my-input-entity";
+  private static final String EVENTHUBS_OUTPUT_ENTITY = "my-output-entity";
 
   // Consider storing these sensitive fields in an .properties file
-  private static final String EVENTHUBS_SAS_KEY_NAME = "YOUR-SAS-KEY-NAME";
-  private static final String EVENTHUBS_SAS_KEY_TOKEN = "YOUR-SAS-TOKEN";
+  private static final String EVENTHUBS_SAS_KEY_NAME = "my-sas-key-name";
+  private static final String EVENTHUBS_SAS_KEY_TOKEN = "my-sas-token";
 
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
     // Define your system here
-    EventHubsSystemDescriptor systemDescriptor = new EventHubsSystemDescriptor("eventhubs")
-        .withDefaultStreamOffsetDefault(SystemStreamMetadata.OffsetType.OLDEST);
+    EventHubsSystemDescriptor systemDescriptor = new EventHubsSystemDescriptor("eventhubs");
 
-    // Choose your Serialize/Deserialize types for the Value of the EventData payload here
+    // Choose your serializer/deserializer for the EventData payload
     StringSerde serde = new StringSerde();
 
     // Define the input and output descriptors with respective configs
