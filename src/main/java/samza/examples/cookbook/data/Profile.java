@@ -18,6 +18,7 @@
  */
 package samza.examples.cookbook.data;
 
+import java.util.Map;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 
@@ -39,4 +40,7 @@ public class Profile {
     this.company = company;
   }
 
+  public Profile(Map<String, Object> jsonObject) {
+    this((String) jsonObject.get("userId"), (String) jsonObject.get("company"));
+  }
 }
