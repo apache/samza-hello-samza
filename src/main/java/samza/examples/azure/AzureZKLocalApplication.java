@@ -32,10 +32,10 @@ public class AzureZKLocalApplication {
     OptionSet options = cmdLine.parser().parse(args);
     Config config = cmdLine.loadConfig(options);
 
-    LocalApplicationRunner runner = new LocalApplicationRunner(config);
     AzureApplication app = new AzureApplication();
+    LocalApplicationRunner runner = new LocalApplicationRunner(app, config);
+    runner.run();
 
-    runner.run(app);
     runner.waitForFinish();
   }
 

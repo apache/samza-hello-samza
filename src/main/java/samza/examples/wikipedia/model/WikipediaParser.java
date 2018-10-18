@@ -38,6 +38,7 @@ public class WikipediaParser {
     } catch (Exception e) {
       System.err.println("Unable to parse line: " + wikipediaFeedEvent);
     }
+
     return parsedJsonObject;
   }
 
