@@ -123,6 +123,7 @@ public class RemoteTableJoinExample implements StreamApplication {
         kafkaSystemDescriptor.getInputDescriptor(INPUT_STREAM_ID, new StringSerde());
     KafkaOutputDescriptor<StockPrice> stockPriceOutputDescriptor =
         kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, new JsonSerdeV2<>(StockPrice.class));
+    appDescriptor.withDefaultSystem(kafkaSystemDescriptor);
     MessageStream<String> stockSymbolStream = appDescriptor.getInputStream(stockSymbolInputDescriptor);
     OutputStream<StockPrice> stockPriceStream = appDescriptor.getOutputStream(stockPriceOutputDescriptor);
 
