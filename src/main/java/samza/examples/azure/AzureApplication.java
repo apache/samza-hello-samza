@@ -44,9 +44,10 @@ public class AzureApplication implements StreamApplication {
   private static final String EVENTHUBS_INPUT_ENTITY = "my-input-entity";
   private static final String EVENTHUBS_OUTPUT_ENTITY = "my-output-entity";
 
-  // Consider storing these sensitive fields in an .properties file
-  private static final String EVENTHUBS_SAS_KEY_NAME = "my-sas-key-name";
-  private static final String EVENTHUBS_SAS_KEY_TOKEN = "my-sas-token";
+  // You may define your own config properties in azure-application-local-runner.properties and
+  // retrieve them in the StreamApplicationDescriptor
+  private static final String EVENTHUBS_SAS_KEY_NAME_CONFIG = "sensitive.eventhubs.sas.key.name";
+  private static final String EVENTHUBS_SAS_KEY_TOKEN_CONFIG = "sensitive.eventhubs.sas.token";
 
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
@@ -59,13 +60,13 @@ public class AzureApplication implements StreamApplication {
     // Define the input and output descriptors with respective configs
     EventHubsInputDescriptor<KV<String, String>> inputDescriptor =
         systemDescriptor.getInputDescriptor(INPUT_STREAM_ID, EVENTHUBS_NAMESPACE, EVENTHUBS_INPUT_ENTITY, serde)
-            .withSasKeyName(EVENTHUBS_SAS_KEY_NAME)
-            .withSasKey(EVENTHUBS_SAS_KEY_TOKEN);
+            .withSasKeyName(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_NAME_CONFIG))
+            .withSasKey(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_TOKEN_CONFIG));
 
     EventHubsOutputDescriptor<KV<String, String>> outputDescriptor =
         systemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, EVENTHUBS_NAMESPACE, EVENTHUBS_OUTPUT_ENTITY, serde)
-            .withSasKeyName(EVENTHUBS_SAS_KEY_NAME)
-            .withSasKey(EVENTHUBS_SAS_KEY_TOKEN);
+            .withSasKeyName(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_NAME_CONFIG))
+            .withSasKey(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_TOKEN_CONFIG));
 
     // Define the input and output streams with descriptors
     MessageStream<KV<String, String>> eventhubInput = appDescriptor.getInputStream(inputDescriptor);
