@@ -62,6 +62,10 @@ import java.util.Map;
  *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/stream-table-join-example.properties
  *   </li>
  *   <li>
+ *     Consume messages from the "enriched-pageview-join-output" topic <br/>
+ *     ./deploy/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic enriched-pageview-join-output
+ *   </li>
+ *   <li>
  *     Produce some messages to the "profile-table-input" topic with the same userId <br/>
  *     ./deploy/kafka/bin/kafka-console-producer.sh --topic profile-table-input --broker-list localhost:9092 <br/>
  *     {"userId": "user1", "company": "LNKD"} <br/>
@@ -72,10 +76,6 @@ import java.util.Map;
  *     ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-join-input --broker-list localhost:9092 <br/>
  *     {"userId": "user1", "country": "india", "pageId":"google.com"} <br/>
  *     {"userId": "user2", "country": "china", "pageId":"yahoo.com"}
- *   </li>
- *   <li>
- *     Consume messages from the "enriched-pageview-join-output" topic <br/>
- *     ./deploy/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic enriched-pageview-join-output
  *   </li>
  * </ol>
  *
