@@ -44,8 +44,8 @@ public class AzureApplication implements StreamApplication {
   private static final String EVENTHUBS_INPUT_ENTITY = "my-input-entity";
   private static final String EVENTHUBS_OUTPUT_ENTITY = "my-output-entity";
 
-  // You may define your own config properties in azure-application-local-runner.properties and
-  // retrieve them in the StreamApplicationDescriptor
+  // You may define your own config properties in azure-application-local-runner.properties and retrieve them
+  // in the StreamApplicationDescriptor. Prefix them with 'sensitive.' to avoid logging them.
   private static final String EVENTHUBS_SAS_KEY_NAME_CONFIG = "sensitive.eventhubs.sas.key.name";
   private static final String EVENTHUBS_SAS_KEY_TOKEN_CONFIG = "sensitive.eventhubs.sas.token";
 
