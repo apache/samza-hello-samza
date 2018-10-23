@@ -155,7 +155,9 @@ public class WikipediaApplication implements StreamApplication, Serializable {
 
       // Update persisted total
       Integer editsAllTime = store.get(EDIT_COUNT_KEY);
-      if (editsAllTime == null) editsAllTime = 0;
+      if (editsAllTime == null) {
+        editsAllTime = 0;
+      }
       editsAllTime++;
       store.put(EDIT_COUNT_KEY, editsAllTime);
 
@@ -185,8 +187,7 @@ public class WikipediaApplication implements StreamApplication, Serializable {
    */
   private WikipediaStatsOutput formatOutput(WindowPane<Void, WikipediaStats> statsWindowPane) {
     WikipediaStats stats = statsWindowPane.getMessage();
-    return new WikipediaStatsOutput(
-        stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
+    return new WikipediaStatsOutput(stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
   }
 
   /**
