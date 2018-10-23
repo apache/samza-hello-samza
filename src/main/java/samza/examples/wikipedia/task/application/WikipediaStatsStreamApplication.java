@@ -31,7 +31,7 @@ import org.apache.samza.task.StreamTaskFactory;
 import samza.examples.wikipedia.task.WikipediaStatsStreamTask;
 
 
-public class WikipediaStatsStreamTaskApplication implements TaskApplication {
+public class WikipediaStatsStreamApplication implements TaskApplication {
 
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092/");
