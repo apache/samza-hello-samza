@@ -19,15 +19,16 @@
 package samza.examples.cookbook;
 
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import samza.examples.cookbook.data.PageView;
+
 
 /**
  * In this example, we demonstrate re-partitioning a stream of page views and filtering out some bad events in the stream.
@@ -65,15 +66,22 @@ public class PageViewFilterApp implements StreamApplication {
   private static final String INVALID_USER_ID = "invalidUserId";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
-    graph.setDefaultSerde(KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class)));
+  public void describe(StreamApplicationDescriptor streamApplicationDescriptor) {
+    // Define a system descriptor for Kafka
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka");
 
-    MessageStream<KV<String, PageView>> pageViews = graph.getInputStream(INPUT_TOPIC);
-    OutputStream<KV<String, PageView>> filteredPageViews = graph.getOutputStream(OUTPUT_TOPIC);
+    MessageStream<KV<String, PageView>> pageViews = streamApplicationDescriptor.getInputStream(
+        kafkaSystemDescriptor.getInputDescriptor(INPUT_TOPIC,
+            KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class))));
 
-    pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "pageview")
-        .filter(kv -> !INVALID_USER_ID.equals(kv.value.userId))
+    OutputStream<KV<String, PageView>> filteredPageViews = streamApplicationDescriptor.getOutputStream(
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_TOPIC,
+            KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class))));
+
+    // First, filter out InvalidUserIDs, and then repartition the stream by userId
+    pageViews.filter(kv -> !INVALID_USER_ID.equals(kv.value.userId))
+        .partitionBy(x -> x.getValue().userId, x -> x.getValue(),
+            KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class)), "pageview")
         .sendTo(filteredPageViews);
   }
 }

@@ -20,29 +20,8 @@
 package samza.examples.wikipedia.application;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
-import org.apache.samza.metrics.Counter;
-import org.apache.samza.operators.MessageStream;
-import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
-import org.apache.samza.operators.functions.FoldLeftFunction;
-import org.apache.samza.operators.windows.WindowPane;
-import org.apache.samza.operators.windows.Windows;
-import org.apache.samza.serializers.JsonSerdeV2;
-import org.apache.samza.serializers.NoOpSerde;
-import org.apache.samza.serializers.Serde;
-import org.apache.samza.storage.kv.KeyValueStore;
-import org.apache.samza.task.TaskContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import samza.examples.wikipedia.model.WikipediaParser;
-import samza.examples.wikipedia.system.WikipediaFeed.WikipediaFeedEvent;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.time.Duration;
@@ -50,6 +29,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.samza.application.StreamApplication;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
+import org.apache.samza.context.Context;
+import org.apache.samza.metrics.Counter;
+import org.apache.samza.operators.MessageStream;
+import org.apache.samza.operators.OutputStream;
+import org.apache.samza.operators.functions.FoldLeftFunction;
+import org.apache.samza.operators.windows.WindowPane;
+import org.apache.samza.operators.windows.Windows;
+import org.apache.samza.serializers.JsonSerdeV2;
+import org.apache.samza.serializers.NoOpSerde;
+import org.apache.samza.serializers.Serde;
+import org.apache.samza.storage.kv.KeyValueStore;
+import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import samza.examples.wikipedia.model.WikipediaParser;
+import samza.examples.wikipedia.system.WikipediaFeed.WikipediaFeedEvent;
 
 
 /**
@@ -70,7 +69,7 @@ import java.util.Set;
  *   <li>Send the window output to Kafka</li>
  * </ul>
  *
- * All of this application logic is defined in the {@link #init(StreamGraph, Config)} method, which
+ * All of this application logic is defined in the {@link #describe(StreamApplicationDescriptor)} method, which
  * is invoked by the framework to load the application.
  */
 public class WikipediaApplication implements StreamApplication {
@@ -91,29 +90,44 @@ public class WikipediaApplication implements StreamApplication {
   private static final String EDIT_COUNT_KEY = "count-edits-all-time";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
-    // Messages come from WikipediaConsumer so we know that they don't have a key and don't need to be deserialized.
-    graph.setDefaultSerde(new NoOpSerde<>());
+  public void describe(StreamApplicationDescriptor streamApplicationDescriptor) {
+
+    // Define a system descriptor for Kafka
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka");
+
+    // Define input descriptors for wikipedia-input
+    KafkaInputDescriptor inputDescriptorForWikipediaEvents =
+        kafkaSystemDescriptor.getInputDescriptor(WIKIPEDIA_STREAM_ID, new NoOpSerde<>());
+
+    KafkaInputDescriptor inputDescriptorForWiktionaryEvents =
+        kafkaSystemDescriptor.getInputDescriptor(WIKTIONARY_STREAM_ID, new NoOpSerde<>());
+
+    KafkaInputDescriptor inputDescriptorForWikiNewsEvents =
+        kafkaSystemDescriptor.getInputDescriptor(WIKINEWS_STREAM_ID, new NoOpSerde<>());
+
+    KafkaOutputDescriptor outputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor(STATS_STREAM_ID, new JsonSerdeV2<>(WikipediaStatsOutput.class));
 
     // Inputs
     // Messages come from WikipediaConsumer so we know the type is WikipediaFeedEvent
-    MessageStream<WikipediaFeedEvent> wikipediaEvents = graph.getInputStream(WIKIPEDIA_STREAM_ID);
-    MessageStream<WikipediaFeedEvent> wiktionaryEvents = graph.getInputStream(WIKTIONARY_STREAM_ID);
-    MessageStream<WikipediaFeedEvent> wikiNewsEvents = graph.getInputStream(WIKINEWS_STREAM_ID);
+    MessageStream<WikipediaFeedEvent> wikipediaEvents =
+        streamApplicationDescriptor.getInputStream(inputDescriptorForWikipediaEvents);
+    MessageStream<WikipediaFeedEvent> wiktionaryEvents =
+        streamApplicationDescriptor.getInputStream(inputDescriptorForWiktionaryEvents);
+    MessageStream<WikipediaFeedEvent> wikiNewsEvents =
+        streamApplicationDescriptor.getInputStream(inputDescriptorForWikiNewsEvents);
 
     // Output (also un-keyed)
-    OutputStream<WikipediaStatsOutput> wikipediaStats =
-        graph.getOutputStream(STATS_STREAM_ID, new JsonSerdeV2<>(WikipediaStatsOutput.class));
+    OutputStream<WikipediaStatsOutput> wikipediaStats = streamApplicationDescriptor.getOutputStream(outputDescriptor);
 
     // Merge inputs
     MessageStream<WikipediaFeedEvent> allWikipediaEvents =
         MessageStream.mergeAll(ImmutableList.of(wikipediaEvents, wiktionaryEvents, wikiNewsEvents));
 
     // Parse, update stats, prepare output, and send
-    allWikipediaEvents
-        .map(WikipediaParser::parseEvent)
-        .window(Windows.tumblingWindow(Duration.ofSeconds(10), WikipediaStats::new,
-                new WikipediaStatsAggregator(), WikipediaStats.serde()), "statsWindow")
+    allWikipediaEvents.map(WikipediaParser::parseEvent)
+        .window(Windows.tumblingWindow(Duration.ofSeconds(10), WikipediaStats::new, new WikipediaStatsAggregator(),
+            WikipediaStats.serde()), "statsWindow")
         .map(this::formatOutput)
         .sendTo(wikipediaStats);
   }
@@ -132,13 +146,13 @@ public class WikipediaApplication implements StreamApplication {
 
     /**
      * {@inheritDoc}
-     * Override {@link org.apache.samza.operators.functions.InitableFunction#init(Config, TaskContext)} to
+     * Override {@link org.apache.samza.operators.functions.InitableFunction#init(Context)} to
      * get a KeyValueStore for persistence and the MetricsRegistry for metrics.
      */
     @Override
-    public void init(Config config, TaskContext context) {
-      store = (KeyValueStore<String, Integer>) context.getStore(STATS_STORE_NAME);
-      repeatEdits = context.getMetricsRegistry().newCounter("edit-counters", "repeat-edits");
+    public void init(Context context) {
+      store = (KeyValueStore<String, Integer>) context.getTaskContext().getStore(STATS_STORE_NAME);
+      repeatEdits = context.getTaskContext().getTaskMetricsRegistry().newCounter("edit-counters", "repeat-edits");
     }
 
     @Override
@@ -146,7 +160,9 @@ public class WikipediaApplication implements StreamApplication {
 
       // Update persisted total
       Integer editsAllTime = store.get(EDIT_COUNT_KEY);
-      if (editsAllTime == null) editsAllTime = 0;
+      if (editsAllTime == null) {
+        editsAllTime = 0;
+      }
       editsAllTime++;
       store.put(EDIT_COUNT_KEY, editsAllTime);
 
@@ -176,8 +192,7 @@ public class WikipediaApplication implements StreamApplication {
    */
   private WikipediaStatsOutput formatOutput(WindowPane<Void, WikipediaStats> statsWindowPane) {
     WikipediaStats stats = statsWindowPane.getMessage();
-    return new WikipediaStatsOutput(
-        stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
+    return new WikipediaStatsOutput(stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
   }
 
   /**

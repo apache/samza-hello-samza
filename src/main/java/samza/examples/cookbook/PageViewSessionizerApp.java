@@ -18,22 +18,21 @@
  */
 package samza.examples.cookbook;
 
+import java.time.Duration;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.windows.Windows;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import samza.examples.cookbook.data.PageView;
 import samza.examples.cookbook.data.UserPageViews;
 
-import java.time.Duration;
-import java.util.function.Function;
 
 /**
  * In this example, we group page views by userId into sessions, and compute the number of page views for each user
@@ -75,21 +74,24 @@ public class PageViewSessionizerApp implements StreamApplication {
   private static final String OUTPUT_TOPIC = "pageview-session-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor appDescriptor) {
     Serde<String> stringSerde = new StringSerde();
     Serde<PageView> pageviewSerde = new JsonSerdeV2<>(PageView.class);
     KVSerde<String, PageView> pageViewKVSerde = KVSerde.of(stringSerde, pageviewSerde);
     Serde<UserPageViews> userPageviewSerde = new JsonSerdeV2<>(UserPageViews.class);
-    graph.setDefaultSerde(pageViewKVSerde);
 
-    MessageStream<KV<String, PageView>> pageViews = graph.getInputStream(INPUT_TOPIC);
-    OutputStream<KV<String, UserPageViews>> userPageViews =
-        graph.getOutputStream(OUTPUT_TOPIC, KVSerde.of(stringSerde, userPageviewSerde));
+    // Define a system descriptor for Kafka
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka");
 
-    pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "pageview")
-        .window(Windows.keyedSessionWindow(kv -> kv.value.userId,
-            Duration.ofSeconds(10), stringSerde, pageViewKVSerde), "usersession")
+    MessageStream<KV<String, PageView>> pageViews =
+        appDescriptor.getInputStream(kafkaSystemDescriptor.getInputDescriptor(INPUT_TOPIC, pageViewKVSerde));
+
+    OutputStream<KV<String, UserPageViews>> userPageViews = appDescriptor.getOutputStream(
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_TOPIC, KVSerde.of(stringSerde, userPageviewSerde)));
+
+    pageViews.partitionBy(kv -> kv.getValue().userId, kv -> kv.value, pageViewKVSerde, "pageview")
+        .window(Windows.keyedSessionWindow(kv -> kv.value.userId, Duration.ofSeconds(10), stringSerde, pageViewKVSerde),
+            "usersession")
         .map(windowPane -> {
           String userId = windowPane.getKey().getKey();
           int views = windowPane.getMessage().size();

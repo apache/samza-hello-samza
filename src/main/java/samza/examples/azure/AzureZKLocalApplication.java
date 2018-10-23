@@ -23,7 +23,7 @@ import joptsimple.OptionSet;
 import org.apache.samza.config.Config;
 import org.apache.samza.runtime.LocalApplicationRunner;
 import org.apache.samza.util.CommandLine;
-import samza.examples.azure.AzureApplication;
+
 
 public class AzureZKLocalApplication {
 
@@ -32,11 +32,10 @@ public class AzureZKLocalApplication {
     OptionSet options = cmdLine.parser().parse(args);
     Config config = cmdLine.loadConfig(options);
 
-    LocalApplicationRunner runner = new LocalApplicationRunner(config);
     AzureApplication app = new AzureApplication();
+    LocalApplicationRunner runner = new LocalApplicationRunner(app, config);
 
-    runner.run(app);
+    runner.run();
     runner.waitForFinish();
   }
-
 }

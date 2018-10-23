@@ -45,10 +45,9 @@ public class WikipediaZkLocalApplication {
     OptionSet options = cmdLine.parser().parse(args);
     Config config = cmdLine.loadConfig(options);
 
-    LocalApplicationRunner runner = new LocalApplicationRunner(config);
     WikipediaApplication app = new WikipediaApplication();
-
-    runner.run(app);
+    LocalApplicationRunner runner = new LocalApplicationRunner(app, config);
+    runner.run();
     runner.waitForFinish();
   }
 }

@@ -50,6 +50,7 @@ dependencies {
     compile(group: 'org.apache.samza', name: 'samza-kv_2.11', version: "$SAMZA_VERSION")
     compile(group: 'org.apache.samza', name: 'samza-aws', version: "$SAMZA_VERSION")
     compile(group: 'org.apache.samza', name: 'samza-sql', version: "$SAMZA_VERSION")
+    compile(group: 'org.apache.samza', name: 'samza-azure', version: "$SAMZA_VERSION")
 
     explode (group: 'org.apache.samza', name: 'samza-shell',  ext: 'tgz', classifier: 'dist', version: "$SAMZA_VERSION")
 

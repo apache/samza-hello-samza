@@ -18,20 +18,20 @@
  */
 package samza.examples.cookbook;
 
+import java.time.Duration;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.functions.JoinFunction;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import samza.examples.cookbook.data.AdClick;
 import samza.examples.cookbook.data.PageView;
 
-import java.time.Duration;
 
 /**
  * In this example, we join a stream of Page views with a stream of Ad clicks. For instance, this is helpful for
@@ -77,15 +77,26 @@ public class PageViewAdClickJoiner implements StreamApplication {
   private static final String OUTPUT_TOPIC = "pageview-adclick-join-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor streamApplicationDescriptor) {
+
+    // Define serdes
     StringSerde stringSerde = new StringSerde();
     JsonSerdeV2<PageView> pageViewSerde = new JsonSerdeV2<>(PageView.class);
     JsonSerdeV2<AdClick> adClickSerde = new JsonSerdeV2<>(AdClick.class);
     JsonSerdeV2<JoinResult> joinResultSerde = new JsonSerdeV2<>(JoinResult.class);
 
-    MessageStream<PageView> pageViews = graph.getInputStream(PAGEVIEW_TOPIC, pageViewSerde);
-    MessageStream<AdClick> adClicks = graph.getInputStream(AD_CLICK_TOPIC, adClickSerde);
-    OutputStream<JoinResult> joinResults = graph.getOutputStream(OUTPUT_TOPIC, joinResultSerde);
+    // Define a system descriptor for Kafka
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka");
+
+    MessageStream<PageView> pageViews = streamApplicationDescriptor.getInputStream(
+        kafkaSystemDescriptor.getInputDescriptor(PAGEVIEW_TOPIC, pageViewSerde));
+
+    MessageStream<AdClick> adClicks = streamApplicationDescriptor.getInputStream(
+        kafkaSystemDescriptor.getInputDescriptor(AD_CLICK_TOPIC, adClickSerde));
+
+    // output stream
+    OutputStream<JoinResult> joinResults = streamApplicationDescriptor.getOutputStream(
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_TOPIC, joinResultSerde));
 
     JoinFunction<String, PageView, AdClick, JoinResult> pageViewAdClickJoinFunction =
         new JoinFunction<String, PageView, AdClick, JoinResult>() {
@@ -106,19 +117,15 @@ public class PageViewAdClickJoiner implements StreamApplication {
         };
 
     MessageStream<PageView> repartitionedPageViews =
-        pageViews
-            .partitionBy(pv -> pv.pageId, pv -> pv, KVSerde.of(stringSerde, pageViewSerde), "pageview")
+        pageViews.partitionBy(pv -> pv.pageId, pv -> pv, KVSerde.of(stringSerde, pageViewSerde), "pageview")
             .map(KV::getValue);
 
     MessageStream<AdClick> repartitionedAdClicks =
-        adClicks
-            .partitionBy(AdClick::getPageId, ac -> ac, KVSerde.of(stringSerde, adClickSerde), "adclick")
+        adClicks.partitionBy(AdClick::getPageId, ac -> ac, KVSerde.of(stringSerde, adClickSerde), "adclick")
             .map(KV::getValue);
 
-    repartitionedPageViews
-        .join(repartitionedAdClicks, pageViewAdClickJoinFunction,
-            stringSerde, pageViewSerde, adClickSerde, Duration.ofMinutes(3), "join")
-        .sendTo(joinResults);
+    repartitionedPageViews.join(repartitionedAdClicks, pageViewAdClickJoinFunction, stringSerde, pageViewSerde,
+        adClickSerde, Duration.ofMinutes(3), "join").sendTo(joinResults);
   }
 
   static class JoinResult {

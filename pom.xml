@@ -153,7 +153,7 @@ under the License.
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>0.14.0</samza.version>
+    <samza.version>1.0.0</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 

@@ -18,21 +18,21 @@
  */
 package samza.examples.cookbook;
 
+import java.time.Duration;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.windows.Windows;
 import org.apache.samza.serializers.IntegerSerde;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import samza.examples.cookbook.data.PageView;
 import samza.examples.cookbook.data.UserPageViews;
 
-import java.time.Duration;
 
 /**
  * In this example, we group a stream of page views by country, and compute the number of page views over a tumbling time
@@ -55,7 +55,7 @@ import java.time.Duration;
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-tumbling-input" topic, waiting for some time between messages <br/>
-       ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-tumbling-input --broker-list localhost:9092 <br/>
+ ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-tumbling-input --broker-list localhost:9092 <br/>
  *     {"userId": "user1", "country": "india", "pageId":"google.com/home"} <br/>
  *     {"userId": "user1", "country": "india", "pageId":"google.com/search"} <br/>
  *     {"userId": "user2", "country": "china", "pageId":"yahoo.com/home"} <br/>
@@ -76,18 +76,24 @@ public class TumblingPageViewCounterApp implements StreamApplication {
   private static final String OUTPUT_TOPIC = "pageview-tumbling-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
-    graph.setDefaultSerde(KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class)));
+  public void describe(StreamApplicationDescriptor applicationDescriptor) {
 
-    MessageStream<KV<String, PageView>> pageViews = graph.getInputStream(INPUT_TOPIC);
-    OutputStream<KV<String, UserPageViews>> outputStream =
-        graph.getOutputStream(OUTPUT_TOPIC, KVSerde.of(new StringSerde(), new JsonSerdeV2<>(UserPageViews.class)));
+    // Define a system descriptor for Kafka
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka");
 
-    pageViews
-        .partitionBy(kv -> kv.value.userId, kv -> kv.value, "userId")
-        .window(Windows.keyedTumblingWindow(
-            kv -> kv.key, Duration.ofSeconds(5), () -> 0, (m, prevCount) -> prevCount + 1,
-            new StringSerde(), new IntegerSerde()), "count")
+    MessageStream<KV<String, PageView>> pageViews = applicationDescriptor.getInputStream(
+        kafkaSystemDescriptor.getInputDescriptor(INPUT_TOPIC,
+            KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class))));
+
+    OutputStream<KV<String, UserPageViews>> outputStream = applicationDescriptor.getOutputStream(
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_TOPIC,
+            KVSerde.of(new StringSerde(), new JsonSerdeV2<>(UserPageViews.class))));
+
+    pageViews.partitionBy(kv -> kv.getValue().userId, kv -> kv.getValue(),
+        KVSerde.of(new StringSerde(), new JsonSerdeV2<>(PageView.class)), "userId")
+        .window(
+            Windows.keyedTumblingWindow(kv -> kv.key, Duration.ofSeconds(5), () -> 0, (m, prevCount) -> prevCount + 1,
+                new StringSerde(), new IntegerSerde()), "count")
         .map(windowPane -> {
           String userId = windowPane.getKey().getKey();
           int views = windowPane.getMessage();

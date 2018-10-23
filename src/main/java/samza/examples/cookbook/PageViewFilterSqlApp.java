@@ -2,12 +2,9 @@ package samza.examples.cookbook;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import org.apache.avro.Schema;
 import org.apache.samza.SamzaException;
-import org.apache.samza.config.Config;
-import org.apache.samza.config.MapConfig;
-import org.apache.samza.operators.StreamGraph;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.sql.runner.SamzaSqlApplication;
 import org.apache.samza.sql.runner.SamzaSqlApplicationConfig;
 
@@ -47,23 +44,21 @@ public class PageViewFilterSqlApp extends SamzaSqlApplication {
   private static final String CFG_SCHEMA_VALUE_FMT = "";
 
   @Override
-  public void init(StreamGraph streamGraph, Config config) {
+  public void describe(StreamApplicationDescriptor appDescriptor) {
     String sqlStmt = "insert into kafka.NewLinkedInEmployees select id, Name from ProfileChangeStream";
-    String schemaFiles = config.get(CFG_SCHEMA_FILES);
-    HashMap<String, String> newConfig = new HashMap<>();
-    newConfig.putAll(config);
-    populateSchemaConfigs(schemaFiles, newConfig);
-    newConfig.put(SamzaSqlApplicationConfig.CFG_SQL_STMT, sqlStmt);
-    super.init(streamGraph, new MapConfig(newConfig));
+    String schemaFiles = appDescriptor.getConfig().get(CFG_SCHEMA_FILES);
+    populateSchemaConfigs(schemaFiles, appDescriptor);
+    appDescriptor.getConfig().put(SamzaSqlApplicationConfig.CFG_SQL_STMT, sqlStmt);
+    super.describe(appDescriptor);
   }
 
-  private void populateSchemaConfigs(String schemaFilesValue, HashMap<String, String> config) {
+  private void populateSchemaConfigs(String schemaFilesValue, StreamApplicationDescriptor appDescriptor) {
     String[] schemaFiles = schemaFilesValue.split(",");
     for (String schemaFileValue : schemaFiles) {
       try {
         File schemaFile = new File(schemaFileValue);
         String schemaValue = Schema.parse(schemaFile).toString();
-        config.put(String.format(CFG_SCHEMA_VALUE_FMT, schemaFile.getName()), schemaValue);
+        appDescriptor.getConfig().put(String.format(CFG_SCHEMA_VALUE_FMT, schemaFile.getName()), schemaValue);
       } catch (IOException e) {
         throw new SamzaException("Unable to parse the schemaFile " + schemaFileValue, e);
       }

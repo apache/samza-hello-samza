@@ -20,42 +20,48 @@
 package samza.examples.azure;
 
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.serializers.ByteSerde;
-import org.apache.samza.serializers.KVSerde;
-import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.eventhub.descriptors.EventHubsInputDescriptor;
+import org.apache.samza.system.eventhub.descriptors.EventHubsOutputDescriptor;
+import org.apache.samza.system.eventhub.descriptors.EventHubsSystemDescriptor;
+
 
 public class AzureApplication implements StreamApplication {
 
-  // Inputs
+  // Input stream id
   private static final String INPUT_STREAM_ID = "input-stream";
 
-  // Outputs
+  // Outputs stream id
   private static final String OUTPUT_STREAM_ID = "output-stream";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor streamApplicationDescriptor) {
 
-    // Input
-    MessageStream<KV<String, byte[]>> eventhubInput = graph.getInputStream(INPUT_STREAM_ID);
+    // Build input and output system descriptors
+    EventHubsSystemDescriptor eventHubsSystemDescriptor = new EventHubsSystemDescriptor("");
 
-    // Output
-    OutputStream<KV<String, byte[]>> eventhubOutput =
-        graph.getOutputStream(OUTPUT_STREAM_ID, KVSerde.of(new StringSerde(), new ByteSerde()));
+    EventHubsInputDescriptor<KV<String, byte[]>> inputDescriptor =
+        eventHubsSystemDescriptor.getInputDescriptor(INPUT_STREAM_ID, "", "", new ByteSerde());
 
-    // Send
-    eventhubInput
-        .filter((message) -> message.getKey() != null)
-        .map((message) -> {
-          System.out.println("Sending: ");
-          System.out.println("Received Key: " + message.getKey());
-          System.out.println("Received Message: " + new String(message.getValue()));
-          return message;
-        })
-        .sendTo(eventhubOutput);
+    EventHubsOutputDescriptor<KV<String, byte[]>> outputDescriptor =
+        eventHubsSystemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, "", "", new ByteSerde());
+
+    // Input stream
+    MessageStream<KV<String, byte[]>> eventhubInput = streamApplicationDescriptor.getInputStream(inputDescriptor);
+
+    // Output stream
+    OutputStream<KV<String, byte[]>> eventhubOutput = streamApplicationDescriptor.getOutputStream(outputDescriptor);
+
+    // wire the logic
+    eventhubInput.filter((message) -> message.getKey() != null).map((message) -> {
+      System.out.println("Sending: ");
+      System.out.println("Received Key: " + message.getKey());
+      System.out.println("Received Message: " + new String(message.getValue()));
+      return message;
+    }).sendTo(eventhubOutput);
   }
 }
