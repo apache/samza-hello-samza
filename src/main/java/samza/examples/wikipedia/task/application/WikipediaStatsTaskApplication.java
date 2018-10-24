@@ -31,10 +31,10 @@ import org.apache.samza.task.StreamTaskFactory;
 import samza.examples.wikipedia.task.WikipediaStatsStreamTask;
 
 
-public class WikipediaStatsStreamApplication implements TaskApplication {
+public class WikipediaStatsTaskApplication implements TaskApplication {
 
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
-  private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092/");
+  private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
   private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
   @Override
@@ -50,8 +50,16 @@ public class WikipediaStatsStreamApplication implements TaskApplication {
     KafkaInputDescriptor kafkaInputDescriptor =
         kafkaSystemDescriptor.getInputDescriptor("wikipedia-edits", new JsonSerde<>());
 
+    // Set the default system descriptor to Kafka, so that it is used for all
+    // internal resources, e.g., kafka topic for checkpointing, coordinator stream.
+    taskApplicationDescriptor.withDefaultSystem(kafkaSystemDescriptor);
+
     // Set the input
     taskApplicationDescriptor.withInputStream(kafkaInputDescriptor);
+
+    // Set the output
+    taskApplicationDescriptor.withOutputStream(
+        kafkaSystemDescriptor.getOutputDescriptor("wikipedia-stats", new JsonSerde<>()));
 
     // Set the task factory
     taskApplicationDescriptor.withTaskFactory((StreamTaskFactory) () -> new WikipediaStatsStreamTask());

@@ -25,14 +25,21 @@ import java.util.Map;
 import org.apache.samza.application.TaskApplication;
 import org.apache.samza.application.descriptors.TaskApplicationDescriptor;
 import org.apache.samza.serializers.JsonSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.task.StreamTaskFactory;
 import samza.examples.wikipedia.system.descriptors.WikipediaInputDescriptor;
 import samza.examples.wikipedia.system.descriptors.WikipediaSystemDescriptor;
-import samza.examples.wikipedia.task.WikipediaStatsStreamTask;
+import samza.examples.wikipedia.task.WikipediaFeedStreamTask;
 
 
-public class WikipediaFeedStreamApplication implements TaskApplication {
+/**
+ * This TaskApplication is responsible for consuming data from wikipedia, wiktionary, and wikinews data sources, and
+ * merging them into a single Kafka topic called wikipedia-raw.
+ *
+ *
+ */
+public class WikipediaFeedTaskApplication implements TaskApplication {
 
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -41,7 +48,10 @@ public class WikipediaFeedStreamApplication implements TaskApplication {
   @Override
   public void describe(TaskApplicationDescriptor taskApplicationDescriptor) {
 
+    // Define a SystemDescriptor for Wikipedia data
     WikipediaSystemDescriptor wikipediaSystemDescriptor = new WikipediaSystemDescriptor("irc.wikimedia.org", 6667);
+
+    // Define InputDescriptors for consuming wikipedia data
     WikipediaInputDescriptor wikipediaInputDescriptor =
         wikipediaSystemDescriptor.getInputDescriptor("en-wikipedia").withChannel("#en.wikipedia");
     WikipediaInputDescriptor wiktionaryInputDescriptor =
@@ -49,21 +59,29 @@ public class WikipediaFeedStreamApplication implements TaskApplication {
     WikipediaInputDescriptor wikiNewsInputDescriptor =
         wikipediaSystemDescriptor.getInputDescriptor("en-wikinews").withChannel("#en.wikinews");
 
-    // Define a system descriptor for Kafka
+    // Define a system descriptor for Kafka, which is our output system
     KafkaSystemDescriptor kafkaSystemDescriptor =
         new KafkaSystemDescriptor("kafka").withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
             .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
             .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
+
+    // Define an output descriptor
+    KafkaOutputDescriptor kafkaOutputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor("wikipedia-raw", new JsonSerde<>());
+
+    // Set the default system descriptor to Kafka, so that it is used for all
+    // internal resources, e.g., kafka topic for checkpointing, coordinator stream.
+    taskApplicationDescriptor.withDefaultSystem(kafkaSystemDescriptor);
 
     // Set the inputs
     taskApplicationDescriptor.withInputStream(wikipediaInputDescriptor);
     taskApplicationDescriptor.withInputStream(wiktionaryInputDescriptor);
     taskApplicationDescriptor.withInputStream(wikiNewsInputDescriptor);
 
-    taskApplicationDescriptor.withOutputStream(
-        kafkaSystemDescriptor.getOutputDescriptor("wikipedia-stats", new JsonSerde<>()));
+    // Set the output
+    taskApplicationDescriptor.withOutputStream(kafkaOutputDescriptor);
 
     // Set the task factory
-    taskApplicationDescriptor.withTaskFactory((StreamTaskFactory) () -> new WikipediaStatsStreamTask());
+    taskApplicationDescriptor.withTaskFactory((StreamTaskFactory) () -> new WikipediaFeedStreamTask());
   }
 }

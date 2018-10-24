@@ -87,7 +87,11 @@ public class WikipediaApplication implements StreamApplication, Serializable {
 
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
+
+    // Define a SystemDescriptor for Wikipedia data
     WikipediaSystemDescriptor wikipediaSystemDescriptor = new WikipediaSystemDescriptor("irc.wikimedia.org", 6667);
+
+    // Define InputDescriptors for consuming wikipedia data
     WikipediaInputDescriptor wikipediaInputDescriptor = wikipediaSystemDescriptor
         .getInputDescriptor("en-wikipedia")
         .withChannel("#en.wikipedia");
@@ -98,14 +102,19 @@ public class WikipediaApplication implements StreamApplication, Serializable {
         .getInputDescriptor("en-wikinews")
         .withChannel("#en.wikinews");
 
+    // Define a system descriptor for Kafka
     KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka")
         .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
         .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
         .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
 
+    // Define an output descriptor
     KafkaOutputDescriptor<WikipediaStatsOutput> statsOutputDescriptor =
         kafkaSystemDescriptor.getOutputDescriptor("wikipedia-stats", new JsonSerdeV2<>(WikipediaStatsOutput.class));
 
+
+    // Set the default system descriptor to Kafka, so that it is used for all
+    // internal resources, e.g., kafka topic for checkpointing, coordinator stream.
     appDescriptor.withDefaultSystem(kafkaSystemDescriptor);
     MessageStream<WikipediaFeedEvent> wikipediaEvents = appDescriptor.getInputStream(wikipediaInputDescriptor);
     MessageStream<WikipediaFeedEvent> wiktionaryEvents = appDescriptor.getInputStream(wiktionaryInputDescriptor);

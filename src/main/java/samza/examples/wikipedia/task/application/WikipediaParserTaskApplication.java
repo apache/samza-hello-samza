@@ -26,13 +26,13 @@ import org.apache.samza.application.TaskApplication;
 import org.apache.samza.application.descriptors.TaskApplicationDescriptor;
 import org.apache.samza.serializers.JsonSerde;
 import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.task.StreamTaskFactory;
 import samza.examples.wikipedia.task.WikipediaParserStreamTask;
 
 
-public class WikipediaParserStreamApplication implements TaskApplication {
-
+public class WikipediaParserTaskApplication implements TaskApplication {
 
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
@@ -41,19 +41,29 @@ public class WikipediaParserStreamApplication implements TaskApplication {
   @Override
   public void describe(TaskApplicationDescriptor taskApplicationDescriptor) {
 
-    // Define a system descriptor for Kafka
-    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka")
-        .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
-        .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
-        .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
+    // Define a system descriptor for Kafka, which is both our input and output system
+    KafkaSystemDescriptor kafkaSystemDescriptor =
+        new KafkaSystemDescriptor("kafka").withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
+            .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
+            .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
 
-
-    // Input descriptor for the wikipedia-edits topic
+    // Input descriptor for the wikipedia-raw topic
     KafkaInputDescriptor kafkaInputDescriptor =
         kafkaSystemDescriptor.getInputDescriptor("wikipedia-raw", new JsonSerde<>());
 
+    // Output descriptor for the wikipedia-edits topic
+    KafkaOutputDescriptor kafkaOutputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor("wikipedia-edits", new JsonSerde<>());
+
+    // Set the default system descriptor to Kafka, so that it is used for all
+    // internal resources, e.g., kafka topic for checkpointing, coordinator stream.
+    taskApplicationDescriptor.withDefaultSystem(kafkaSystemDescriptor);
+
     // Set the input
     taskApplicationDescriptor.withInputStream(kafkaInputDescriptor);
+
+    // Set the output
+    taskApplicationDescriptor.withOutputStream(kafkaOutputDescriptor);
 
     // Set the task factory
     taskApplicationDescriptor.withTaskFactory((StreamTaskFactory) () -> new WikipediaParserStreamTask());
