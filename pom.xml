@@ -168,7 +168,7 @@ under the License.
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>1.0.0-SNAPSHOT</samza.version>
+    <samza.version>1.0.0</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
@@ -255,6 +255,7 @@ under the License.
               <exclude>**/gradle/**</exclude>
               <exclude>**/gradlew*</exclude>
               <exclude>**/build/**</exclude>
+              <exclude>**/src/test/resources/**</exclude>
             </excludes>
           </configuration>
         </plugin>
