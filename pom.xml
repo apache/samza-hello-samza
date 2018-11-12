@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
@@ -36,6 +36,11 @@ under the License.
   <url>https://samza.apache.org/</url>
 
   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-api</artifactId>
@@ -49,6 +54,11 @@ under the License.
     <dependency>
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-core_2.11</artifactId>
+      <version>${samza.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.samza</groupId>
+      <artifactId>samza-test_2.11</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
@@ -158,7 +168,7 @@ under the License.
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>1.0.1-SNAPSHOT</samza.version>
+    <samza.version>1.0.0</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
@@ -228,6 +238,7 @@ under the License.
           <configuration>
             <excludes>
               <exclude>*.patch</exclude>
+              <exclude>*.txt</exclude>
               <exclude>**/target/**</exclude>
               <exclude>*.json</exclude>
               <exclude>.vagrant/**</exclude>
@@ -244,6 +255,7 @@ under the License.
               <exclude>**/gradle/**</exclude>
               <exclude>**/gradlew*</exclude>
               <exclude>**/build/**</exclude>
+              <exclude>**/src/test/resources/**</exclude>
             </excludes>
           </configuration>
         </plugin>
@@ -292,6 +304,14 @@ under the License.
         </executions>
       </plugin>
     </plugins>
+    <resources>
+      <resource>
+        <directory>src/test/resources</directory>
+        <includes>
+          <include>**/*txt</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
   <profiles>

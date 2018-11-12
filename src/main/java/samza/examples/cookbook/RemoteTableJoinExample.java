@@ -184,7 +184,7 @@ public class RemoteTableJoinExample implements StreamApplication {
     }
   }
 
-  static class StockPrice implements Serializable {
+  public static class StockPrice implements Serializable {
 
     public final String symbol;
     public final Double close;
