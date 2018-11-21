@@ -224,7 +224,7 @@ under the License.
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
-          <version>0.9</version>
+          <version>0.13</version>
           <configuration>
             <excludes>
               <exclude>*.patch</exclude>
@@ -262,7 +262,7 @@ under the License.
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>0.9</version>
+        <version>0.13</version>
         <executions>
           <execution>
             <phase>test</phase>
