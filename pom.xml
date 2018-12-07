@@ -50,6 +50,12 @@ under the License.
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-azure</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -60,11 +66,43 @@ under the License.
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-test_2.11</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-log4j2</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-log4j2</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kv-inmemory_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kv-rocksdb_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kafka_2.12</artifactId>
+       </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-log4j</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
