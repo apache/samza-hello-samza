@@ -84,7 +84,7 @@ deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.P
 
 Once the jobs are started, you can use the same _kafka-console-consumer.sh_ command as in the high-level API Wikipedia example to check out the output of the statistics.
 
-#### 4. Run all the examples as Integration Test
+#### 5. Run all the examples as Integration Test
 
 Every example above are ran with a few messages as Integration test using TestRunner API. You can find all the testing samples in [src/test/java](https://github.com/apache/samza-hello-samza/tree/master/src/test/java). To run it use:
 
