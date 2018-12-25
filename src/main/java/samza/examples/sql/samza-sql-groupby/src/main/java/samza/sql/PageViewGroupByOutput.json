@@ -1,0 +1,18 @@
+{
+    "name": "PageViewGroupByOutput",
+    "version" : 1,
+    "namespace": "org.apache.samza.sql.system.avro",
+    "type": "record",
+    "fields": [
+        {
+            "name":"pageKey",
+            "doc":"The page key of the page being viewed.",
+            "type":["string","null"]
+        },
+        {
+            "name": "Views",
+            "doc" : "Number of views in 5 minute window.",
+            "type": ["long", "null"]
+        }
+    ]
+}
