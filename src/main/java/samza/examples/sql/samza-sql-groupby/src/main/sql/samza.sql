@@ -1,5 +1,5 @@
--- NOTE: Groupby Operator is not currently not fully stable,
---       we are actively working on stabilizing it. 
+-- NOTE: Groupby Operator is currently not fully stable,
+--       we are actively working on stabilizing it.
 
 -- Emit Page view counts collected grouped by page key in the last
 -- 5 minutes at 5 minute interval and send the result to a kafka topic.
