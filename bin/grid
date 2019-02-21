@@ -88,7 +88,7 @@ install_samza() {
   else
     mkdir -p $DOWNLOAD_CACHE_DIR
     pushd $DOWNLOAD_CACHE_DIR
-    git clone git://git.apache.org/samza.git
+    git clone https://gitbox.apache.org/repos/asf/samza.git
     cd samza
   fi
   ./gradlew -PscalaVersion=2.11 clean publishToMavenLocal
