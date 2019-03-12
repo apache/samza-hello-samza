@@ -73,7 +73,7 @@ under the License.
        </exclusion>
        <exclusion>
         <groupId>org.apache.samza</groupId>
-        <artifactId>samza-log4j2</artifactId>
+        <artifactId>samza-log4j</artifactId>
        </exclusion>
        <exclusion>
         <groupId>org.apache.samza</groupId>

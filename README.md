@@ -16,7 +16,7 @@ The **Hello Samza** project contains example Samza applications of high-level AP
 Check out the hello-samza project:
 
 ```
-git clone https://git.apache.org/samza-hello-samza.git hello-samza
+git clone https://gitbox.apache.org/repos/asf/samza-hello-samza.git hello-samza
 cd hello-samza
 ```
 
@@ -56,7 +56,7 @@ After you've built your Samza package, you can start the example applications on
 
 ##### - High-level API Examples
 
-Package [samza.examples.cookbook](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/cookbook) contains various examples of high-level API operator usage, such as map, partitionBy, window and join. Each example is a runnable Samza application with the steps in the class javadocs, e.g [PageViewAdClickJoiner](https://github.com/apache/samza-hello-samza/blob/master/src/main/java/samza/examples/cookbook/PageViewAdClickJoiner.java).
+Package [samza.examples.cookbook](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/cookbook) contains various examples of high-level API operator usage, such as map, partitionBy, window and join. Each example is a runnable Samza application with the steps in the class javadocs, e.g [PageViewAdClickJoiner](https://github.com/apache/samza-hello-samza/blob/master/src/main/java/samza/examples/cookbook/JoinExample.java).
 
 Package [samza.examples.wikipedia.application](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/wikipedia/application) contains a small Samza application which consumes the real-time feeds from Wikipedia, extracts the metadata of the events, and calculates statistics of all edits in a 10-second window. You can start the app on the grid using the run-app.sh script:
 
