@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>1.1.0</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
