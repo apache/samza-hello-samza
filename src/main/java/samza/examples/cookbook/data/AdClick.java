@@ -19,6 +19,8 @@
 
 package samza.examples.cookbook.data;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * An ad click event.
  */
@@ -27,6 +29,15 @@ public class AdClick {
   private String pageId; // the unique id of the page that the ad was clicked on
   private String adId; // an unique id for the ad
   private String userId; // the user that clicked the ad
+
+  public AdClick(
+      @JsonProperty("pageId") String pageId,
+      @JsonProperty("adId") String adId,
+      @JsonProperty("userId") String userId) {
+    this.pageId = pageId;
+    this.adId = adId;
+    this.userId = userId;
+  }
 
   public String getPageId() {
     return pageId;

@@ -31,3 +31,5 @@ deploy
 build/
 .gradle/
 state
+manifest.txt
+pathing.jar

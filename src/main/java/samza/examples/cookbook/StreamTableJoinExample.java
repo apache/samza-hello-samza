@@ -18,6 +18,7 @@
  */
 package samza.examples.cookbook;
 
+import java.util.Objects;
 import org.apache.samza.application.StreamApplication;
 import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
@@ -154,6 +155,19 @@ public class StreamTableJoinExample implements StreamApplication {
       this.userId = userId;
       this.company = company;
       this.pageId = pageId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      EnrichedPageView that = (EnrichedPageView) o;
+      return Objects.equals(userId, that.userId) && Objects.equals(company, that.company) && Objects.equals(pageId,
+          that.pageId);
     }
   }
 
