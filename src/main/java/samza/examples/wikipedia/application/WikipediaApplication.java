@@ -21,6 +21,7 @@ package samza.examples.wikipedia.application;
 
 import com.google.common.collect.ImmutableList;
 import java.io.Serializable;
+import java.util.Objects;
 import org.apache.samza.application.StreamApplication;
 import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.context.Context;
@@ -34,6 +35,8 @@ import org.apache.samza.operators.windows.Windows;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.storage.kv.KeyValueStore;
+import org.apache.samza.system.OutgoingMessageEnvelope;
+import org.apache.samza.system.SystemStream;
 import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.slf4j.Logger;
@@ -85,27 +88,42 @@ public class WikipediaApplication implements StreamApplication, Serializable {
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
   private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
+  public static final String WIKIPEDIA_CHANNEL = "#en.wikipedia";
+  public static final String WIKINEWS_CHANNEL = "#en.wikinews";
+  public static final String WIKTIONARY_CHANNEL = "#en.wiktionary";
+
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
+
+    Duration windowDuration =
+        appDescriptor.getConfig().containsKey("deploy.test") ? Duration.ofMillis(10) : Duration.ofSeconds(10);
+    // Define a SystemDescriptor for Wikipedia data
     WikipediaSystemDescriptor wikipediaSystemDescriptor = new WikipediaSystemDescriptor("irc.wikimedia.org", 6667);
+
+    // Define InputDescriptors for consuming wikipedia data
     WikipediaInputDescriptor wikipediaInputDescriptor = wikipediaSystemDescriptor
         .getInputDescriptor("en-wikipedia")
-        .withChannel("#en.wikipedia");
+        .withChannel(WIKIPEDIA_CHANNEL);
     WikipediaInputDescriptor wiktionaryInputDescriptor = wikipediaSystemDescriptor
         .getInputDescriptor("en-wiktionary")
-        .withChannel("#en.wiktionary");
+        .withChannel(WIKTIONARY_CHANNEL);
     WikipediaInputDescriptor wikiNewsInputDescriptor = wikipediaSystemDescriptor
         .getInputDescriptor("en-wikinews")
-        .withChannel("#en.wikinews");
+        .withChannel(WIKINEWS_CHANNEL);
 
+    // Define a system descriptor for Kafka
     KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor("kafka")
         .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
         .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
         .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
 
+    // Define an output descriptor
     KafkaOutputDescriptor<WikipediaStatsOutput> statsOutputDescriptor =
         kafkaSystemDescriptor.getOutputDescriptor("wikipedia-stats", new JsonSerdeV2<>(WikipediaStatsOutput.class));
 
+
+    // Set the default system descriptor to Kafka, so that it is used for all
+    // internal resources, e.g., kafka topic for checkpointing, coordinator stream.
     appDescriptor.withDefaultSystem(kafkaSystemDescriptor);
     MessageStream<WikipediaFeedEvent> wikipediaEvents = appDescriptor.getInputStream(wikipediaInputDescriptor);
     MessageStream<WikipediaFeedEvent> wiktionaryEvents = appDescriptor.getInputStream(wiktionaryInputDescriptor);
@@ -116,10 +134,11 @@ public class WikipediaApplication implements StreamApplication, Serializable {
     MessageStream<WikipediaFeedEvent> allWikipediaEvents =
         MessageStream.mergeAll(ImmutableList.of(wikipediaEvents, wiktionaryEvents, wikiNewsEvents));
 
+
     // Parse, update stats, prepare output, and send
     allWikipediaEvents
         .map(WikipediaParser::parseEvent)
-        .window(Windows.tumblingWindow(Duration.ofSeconds(10),
+        .window(Windows.tumblingWindow(windowDuration,
             WikipediaStats::new, new WikipediaStatsAggregator(), WikipediaStats.serde()), "statsWindow")
         .map(this::formatOutput)
         .sendTo(wikipediaStats);
@@ -155,7 +174,9 @@ public class WikipediaApplication implements StreamApplication, Serializable {
 
       // Update persisted total
       Integer editsAllTime = store.get(EDIT_COUNT_KEY);
-      if (editsAllTime == null) editsAllTime = 0;
+      if (editsAllTime == null) {
+        editsAllTime = 0;
+      }
       editsAllTime++;
       store.put(EDIT_COUNT_KEY, editsAllTime);
 
@@ -185,8 +206,7 @@ public class WikipediaApplication implements StreamApplication, Serializable {
    */
   private WikipediaStatsOutput formatOutput(WindowPane<Void, WikipediaStats> statsWindowPane) {
     WikipediaStats stats = statsWindowPane.getMessage();
-    return new WikipediaStatsOutput(
-        stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
+    return new WikipediaStatsOutput(stats.edits, stats.totalEdits, stats.byteDiff, stats.titles.size(), stats.counts);
   }
 
   /**
@@ -260,6 +280,26 @@ public class WikipediaApplication implements StreamApplication, Serializable {
       this.uniqueTitles = uniqueTitles;
       this.counts = counts;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      WikipediaStatsOutput that = (WikipediaStatsOutput) o;
+      return edits == that.edits && editsAllTime == that.editsAllTime && bytesAdded == that.bytesAdded
+          && uniqueTitles == that.uniqueTitles && Objects.equals(counts, that.counts);
+    }
+
+    @Override
+    public String toString() {
+      return "WikipediaStatsOutput{" + "edits=" + edits + ", editsAllTime=" + editsAllTime + ", bytesAdded="
+          + bytesAdded + ", uniqueTitles=" + uniqueTitles + ", counts=" + counts + '}';
+    }
+
   }
 }
 
