@@ -189,13 +189,14 @@ wait_for_service() {
   local PORT=$2
   echo "Waiting for $SERVICE_NAME to start..."
   local CURRENT_WAIT_TIME=0
-  until $(nc -w 1 localhost $PORT); do
-    printf '.'
-    sleep 1
-    if [ $((++CURRENT_WAIT_TIME)) -eq $SERVICE_WAIT_TIMEOUT_SEC ]; then
-      printf "\nError: timed out while waiting for $SERVICE_NAME to start.\n"
-      exit 1
-    fi
+
+  while [[ $(echo | nc -w1 localhost $PORT >/dev/null 2>&1 ;echo $?) -ne 0 ]]; do
+      printf '.'
+      sleep 1
+      if [ $((++CURRENT_WAIT_TIME)) -eq $SERVICE_WAIT_TIMEOUT_SEC ]; then
+        printf "\nError: timed out while waiting for $SERVICE_NAME to start.\n"
+        exit 1
+      fi
   done
   printf '\n'
   echo "$SERVICE_NAME has started";
