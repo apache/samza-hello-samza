@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>0.14.0</version>
+  <version>1.1.0</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
@@ -37,14 +37,25 @@ under the License.
 
   <dependencies>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-api</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-azure</artifactId>
+      <artifactId>samza-azure_2.11</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -53,8 +64,45 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-log4j</artifactId>
+      <artifactId>samza-test_2.11</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-log4j</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-log4j2</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kv-inmemory_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kv-rocksdb_2.12</artifactId>
+       </exclusion>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-kafka_2.12</artifactId>
+       </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.samza</groupId>
+      <artifactId>samza-log4j_2.11</artifactId>
+      <version>${samza.version}</version>
+      <exclusions>
+       <exclusion>
+        <groupId>org.apache.samza</groupId>
+        <artifactId>samza-core_2.12</artifactId>
+       </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -85,13 +133,13 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-aws</artifactId>
+      <artifactId>samza-aws_2.11</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_2.11</artifactId>
-      <version>0.10.1.1</version>
+      <version>0.11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.schwering</groupId>
@@ -128,6 +176,11 @@ under the License.
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
+   <dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpcore</artifactId>
+    <version>4.4.1</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
@@ -148,12 +201,17 @@ under the License.
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>23.0</version>
+    </dependency>
   </dependencies>
 
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>0.14.0</samza.version>
+    <samza.version>1.1.0</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
@@ -222,9 +280,11 @@ under the License.
           <version>0.9</version>
           <configuration>
             <excludes>
-              <exclude>*.patch</exclude>
+              <exclude>**/*.patch</exclude>
+              <exclude>**/*.txt</exclude>
               <exclude>**/target/**</exclude>
-              <exclude>*.json</exclude>
+              <exclude>**/*.json</exclude>
+              <exclude>**/*.sql</exclude>
               <exclude>.vagrant/**</exclude>
               <exclude>.git/**</exclude>
               <exclude>*.md</exclude>
@@ -239,6 +299,7 @@ under the License.
               <exclude>**/gradle/**</exclude>
               <exclude>**/gradlew*</exclude>
               <exclude>**/build/**</exclude>
+              <exclude>**/src/test/resources/**</exclude>
             </excludes>
           </configuration>
         </plugin>
@@ -287,6 +348,14 @@ under the License.
         </executions>
       </plugin>
     </plugins>
+    <resources>
+      <resource>
+        <directory>src/test/resources</directory>
+        <includes>
+          <include>**/*txt</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
   <profiles>

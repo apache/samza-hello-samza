@@ -18,20 +18,28 @@
  */
 package samza.examples.cookbook;
 
+import java.io.Serializable;
 import org.apache.samza.application.StreamApplication;
-import org.apache.samza.config.Config;
+import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.operators.StreamGraph;
 import org.apache.samza.operators.functions.JoinFunction;
 import org.apache.samza.serializers.JsonSerdeV2;
 import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
+import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
+import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import samza.examples.cookbook.data.AdClick;
 import samza.examples.cookbook.data.PageView;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 /**
  * In this example, we join a stream of Page views with a stream of Ad clicks. For instance, this is helpful for
@@ -49,7 +57,7 @@ import java.time.Duration;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/pageview-adclick-joiner.properties
+ *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/join-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-join-input" topic <br/>
@@ -70,22 +78,40 @@ import java.time.Duration;
  * </ol>
  *
  */
-public class PageViewAdClickJoiner implements StreamApplication {
+public class JoinExample implements StreamApplication, Serializable {
+  private static final String KAFKA_SYSTEM_NAME = "kafka";
+  private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
+  private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
+  private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
-  private static final String PAGEVIEW_TOPIC = "pageview-join-input";
-  private static final String AD_CLICK_TOPIC = "adclick-join-input";
-  private static final String OUTPUT_TOPIC = "pageview-adclick-join-output";
+  private static final String PAGEVIEW_STREAM_ID = "pageview-join-input";
+  private static final String ADCLICK_STREAM_ID = "adclick-join-input";
+  private static final String OUTPUT_STREAM_ID = "pageview-adclick-join-output";
 
   @Override
-  public void init(StreamGraph graph, Config config) {
+  public void describe(StreamApplicationDescriptor appDescriptor) {
     StringSerde stringSerde = new StringSerde();
     JsonSerdeV2<PageView> pageViewSerde = new JsonSerdeV2<>(PageView.class);
     JsonSerdeV2<AdClick> adClickSerde = new JsonSerdeV2<>(AdClick.class);
     JsonSerdeV2<JoinResult> joinResultSerde = new JsonSerdeV2<>(JoinResult.class);
 
-    MessageStream<PageView> pageViews = graph.getInputStream(PAGEVIEW_TOPIC, pageViewSerde);
-    MessageStream<AdClick> adClicks = graph.getInputStream(AD_CLICK_TOPIC, adClickSerde);
-    OutputStream<JoinResult> joinResults = graph.getOutputStream(OUTPUT_TOPIC, joinResultSerde);
+    KafkaSystemDescriptor kafkaSystemDescriptor = new KafkaSystemDescriptor(KAFKA_SYSTEM_NAME)
+        .withConsumerZkConnect(KAFKA_CONSUMER_ZK_CONNECT)
+        .withProducerBootstrapServers(KAFKA_PRODUCER_BOOTSTRAP_SERVERS)
+        .withDefaultStreamConfigs(KAFKA_DEFAULT_STREAM_CONFIGS);
+
+    KafkaInputDescriptor<PageView> pageViewInputDescriptor =
+        kafkaSystemDescriptor.getInputDescriptor(PAGEVIEW_STREAM_ID, pageViewSerde);
+    KafkaInputDescriptor<AdClick> adClickInputDescriptor =
+        kafkaSystemDescriptor.getInputDescriptor(ADCLICK_STREAM_ID, adClickSerde);
+    KafkaOutputDescriptor<JoinResult> joinResultOutputDescriptor =
+        kafkaSystemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, joinResultSerde);
+
+    appDescriptor.withDefaultSystem(kafkaSystemDescriptor);
+
+    MessageStream<PageView> pageViews = appDescriptor.getInputStream(pageViewInputDescriptor);
+    MessageStream<AdClick> adClicks = appDescriptor.getInputStream(adClickInputDescriptor);
+    OutputStream<JoinResult> joinResults = appDescriptor.getOutputStream(joinResultOutputDescriptor);
 
     JoinFunction<String, PageView, AdClick, JoinResult> pageViewAdClickJoinFunction =
         new JoinFunction<String, PageView, AdClick, JoinResult>() {

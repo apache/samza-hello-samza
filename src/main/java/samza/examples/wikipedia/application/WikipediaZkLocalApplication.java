@@ -23,7 +23,6 @@ import joptsimple.OptionSet;
 import org.apache.samza.config.Config;
 import org.apache.samza.runtime.LocalApplicationRunner;
 import org.apache.samza.util.CommandLine;
-import org.apache.samza.util.Util;
 
 
 /**
@@ -45,10 +44,9 @@ public class WikipediaZkLocalApplication {
     OptionSet options = cmdLine.parser().parse(args);
     Config config = cmdLine.loadConfig(options);
 
-    LocalApplicationRunner runner = new LocalApplicationRunner(config);
     WikipediaApplication app = new WikipediaApplication();
-
-    runner.run(app);
+    LocalApplicationRunner runner = new LocalApplicationRunner(app, config);
+    runner.run();
     runner.waitForFinish();
   }
 }
