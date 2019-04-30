@@ -171,6 +171,16 @@ start_yarn() {
   fi
 }
 
+start_yarn_nm() {
+  SYSTEM=yarn 
+  if [ -f $DEPLOY_ROOT_DIR/$SYSTEM/sbin/yarn-daemon.sh ]; then
+	$DEPLOY_ROOT_DIR/$SYSTEM/sbin/yarn-daemon.sh start nodemanager
+	wait_for_service "nodemanager" $NODEMANAGER_PORT
+  else
+    echo 'YARN is not installed. Run: bin/grid install yarn'
+  fi
+}
+
 start_kafka() {
   if [ -f $DEPLOY_ROOT_DIR/$SYSTEM/bin/kafka-server-start.sh ]; then
     mkdir -p $DEPLOY_ROOT_DIR/$SYSTEM/logs
@@ -252,7 +262,7 @@ elif (test -z "$COMMAND" && test -z "$SYSTEM") \
   echo "  $ grid bootstrap"
   echo "  $ grid standalone"
   echo "  $ grid install [yarn|kafka|zookeeper|samza|all]"
-  echo "  $ grid start [yarn|kafka|zookeeper|all]"
+  echo "  $ grid start [yarn|yarn_nm|kafka|zookeeper|all]"
   echo "  $ grid stop [yarn|kafka|zookeeper|all]"
   echo
   exit 1
