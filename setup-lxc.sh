@@ -75,8 +75,8 @@ function lxc_setup()
 
 	#Install LXC (and its dependencies)
 	echo "Beginning installation. Installing lxc on your machine"
-	#sudo yum -y install epel-release
-	#sudo  yum -y install lxc lxc-templates libcap-devel libcgroup wget bridge-utils lxc-extra --skip-broken
+	sudo yum -y install epel-release
+	sudo  yum -y install lxc lxc-templates libcap-devel libcgroup wget bridge-utils lxc-extra --skip-broken
 	echo "LXC installation complete."
 
 
