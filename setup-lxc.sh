@@ -109,7 +109,7 @@ function lxc_setup()
 
 	# Create shared directory for sharing between base machine and LXC-instances
 	echo "Creating dir $SHARED_LXC_DIR to be shared between base machine and LXC-instances"
-	mkdir -p $SHARED_LXC_DIR && chmod 777 $SHARED_LXC_DIR
+	sudo mkdir -p $SHARED_LXC_DIR && sudo chmod 777 $SHARED_LXC_DIR
 
 	# Setting gateway IP address in conf/yarn-site.xml 
 	echo "Setting yarn.resourcemanager.hostname="$gatewayIP in $YARN_SITE_XML 
