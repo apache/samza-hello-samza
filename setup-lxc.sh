@@ -228,14 +228,54 @@ function setup_new_lxc_instance()
 	setup_lxc_instance $lxc_instance_name $LXC_INSTANCE_TYPE	
 }
 
+function setup_new_instance_from_img()
+{
+	desired_instance_name=$1
+
+	check_OS
+	lxc_setup
+
+	FOLDER=yarn-lxc-samza
+	URL=https://github.com/rmatharu/yarn-lxc-samza.git
+	if [ ! -d "$FOLDER" ] ; then
+		git clone $URL $FOLDER
+	else
+		cd "$FOLDER"
+		git pull $URL
+		cd ..
+	fi
+
+	sudo cp -r yarn-lxc-samza/lxc-yarn-img/ $LXC_ROOTFS_DIR/lxc-yarn-img
+	
+	clone_lxc_instance lxc-yarn-img $desired_instance_name
+
+	echo "Default root password of "$desired_instance_name " is yarnLXC"
+
+	echo "Checking if " $desired_instance_name " can be started ..."
+	sudo lxc-start -d -n $desired_instance_name
+
+	echo "Waiting for $desired_instance_name " to start
+	while ! ping -c 1 -n -w 1 $desired_instance_name &> /dev/null
+	do
+	    echo -n "."
+	done	
+	echo "Started."
+
+	echo "Stopping..."
+	sudo lxc-stop -n $desired_instance_name -t 10
+	echo "$desired_instance_name Stopped"
+	echo "To start use \$ sudo lxc-start -d -n "$desired_instance_name
+
+}
+
 function clone_lxc_instance() 
 {
 	local original_container=$1
 	local new_container=$2
 
 	echo "Stopping container $original_container"
-	sudo lxc-stop -n $original_container
-
+	sudo lxc-stop -n $original_container || true
+	
 	echo "Cloning $original_container to create $new_container"
 	sudo lxc-clone $original_container $new_container
 
@@ -263,7 +303,7 @@ function check_if_already_exists()
 if [[ "$COMMAND" == "create"  &&  ! -z "$ARG0" ]]; then
 	check_if_already_exists $ARG0
 	echo "Creating LXC instance $ARG0"
-	setup_new_lxc_instance $ARG0		
+	setup_new_instance_from_img $ARG0		
 
 elif [[ "$COMMAND" == "clone"  &&  ! -z "$ARG0" && ! -z "$ARG1" ]]; then
 	echo "Cloning LXC instance $ARG0 to create $ARG1"
