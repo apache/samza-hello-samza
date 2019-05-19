@@ -24,39 +24,60 @@ import org.apache.samza.application.descriptors.StreamApplicationDescriptor;
 import org.apache.samza.operators.KV;
 import org.apache.samza.operators.MessageStream;
 import org.apache.samza.operators.OutputStream;
-import org.apache.samza.serializers.ByteSerde;
-import org.apache.samza.serializers.KVSerde;
 import org.apache.samza.serializers.StringSerde;
-import org.apache.samza.system.descriptors.GenericInputDescriptor;
-import org.apache.samza.system.descriptors.GenericOutputDescriptor;
-import org.apache.samza.system.descriptors.GenericSystemDescriptor;
+import org.apache.samza.system.SystemStreamMetadata;
+import org.apache.samza.system.eventhub.descriptors.EventHubsInputDescriptor;
+import org.apache.samza.system.eventhub.descriptors.EventHubsOutputDescriptor;
+import org.apache.samza.system.eventhub.descriptors.EventHubsSystemDescriptor;
+
 
 public class AzureApplication implements StreamApplication {
+  // Stream names
   private static final String INPUT_STREAM_ID = "input-stream";
   private static final String OUTPUT_STREAM_ID = "output-stream";
 
+  // These properties could be configured here or in azure-application-local-runner.properties
+  // Keep in mind that the .properties file will be overwrite properties defined here with Descriptors
+  private static final String EVENTHUBS_NAMESPACE = "my-eventhubs-namespace";
+
+  // Upstream and downstream Event Hubs entity names
+  private static final String EVENTHUBS_INPUT_ENTITY = "my-input-entity";
+  private static final String EVENTHUBS_OUTPUT_ENTITY = "my-output-entity";
+
+  // You may define your own config properties in azure-application-local-runner.properties and retrieve them
+  // in the StreamApplicationDescriptor. Prefix them with 'sensitive.' to avoid logging them.
+  private static final String EVENTHUBS_SAS_KEY_NAME_CONFIG = "sensitive.eventhubs.sas.key.name";
+  private static final String EVENTHUBS_SAS_KEY_TOKEN_CONFIG = "sensitive.eventhubs.sas.token";
+
   @Override
   public void describe(StreamApplicationDescriptor appDescriptor) {
-    GenericSystemDescriptor systemDescriptor =
-        new GenericSystemDescriptor("eventhubs", "org.apache.samza.system.eventhub.EventHubSystemFactory");
+    // Define your system here
+    EventHubsSystemDescriptor systemDescriptor = new EventHubsSystemDescriptor("eventhubs");
 
-    KVSerde<String, byte[]> serde = KVSerde.of(new StringSerde(), new ByteSerde());
+    // Choose your serializer/deserializer for the EventData payload
+    StringSerde serde = new StringSerde();
 
-    GenericInputDescriptor<KV<String, byte[]>> inputDescriptor =
-        systemDescriptor.getInputDescriptor(INPUT_STREAM_ID, serde);
+    // Define the input and output descriptors with respective configs
+    EventHubsInputDescriptor<KV<String, String>> inputDescriptor =
+        systemDescriptor.getInputDescriptor(INPUT_STREAM_ID, EVENTHUBS_NAMESPACE, EVENTHUBS_INPUT_ENTITY, serde)
+            .withSasKeyName(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_NAME_CONFIG))
+            .withSasKey(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_TOKEN_CONFIG));
 
-    GenericOutputDescriptor<KV<String, byte[]>> outputDescriptor =
-        systemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, serde);
+    EventHubsOutputDescriptor<KV<String, String>> outputDescriptor =
+        systemDescriptor.getOutputDescriptor(OUTPUT_STREAM_ID, EVENTHUBS_NAMESPACE, EVENTHUBS_OUTPUT_ENTITY, serde)
+            .withSasKeyName(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_NAME_CONFIG))
+            .withSasKey(appDescriptor.getConfig().get(EVENTHUBS_SAS_KEY_TOKEN_CONFIG));
 
-    MessageStream<KV<String, byte[]>> eventhubInput = appDescriptor.getInputStream(inputDescriptor);
-    OutputStream<KV<String, byte[]>> eventhubOutput = appDescriptor.getOutputStream(outputDescriptor);
+    // Define the input and output streams with descriptors
+    MessageStream<KV<String, String>> eventhubInput = appDescriptor.getInputStream(inputDescriptor);
+    OutputStream<KV<String, String>> eventhubOutput = appDescriptor.getOutputStream(outputDescriptor);
 
+    // Define the execution flow with the high-level API
     eventhubInput
-        .filter((message) -> message.getKey() != null)
         .map((message) -> {
           System.out.println("Sending: ");
           System.out.println("Received Key: " + message.getKey());
-          System.out.println("Received Message: " + new String(message.getValue()));
+          System.out.println("Received Message: " + message.getValue());
           return message;
         })
         .sendTo(eventhubOutput);

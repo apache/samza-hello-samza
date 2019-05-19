@@ -40,9 +40,9 @@ import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.table.Table;
-import org.apache.samza.table.caching.descriptors.CachingTableDescriptor;
+import org.apache.samza.table.descriptors.CachingTableDescriptor;
 import org.apache.samza.table.remote.TableReadFunction;
-import org.apache.samza.table.remote.descriptors.RemoteTableDescriptor;
+import org.apache.samza.table.descriptors.RemoteTableDescriptor;
 import org.apache.samza.util.ExponentialSleepStrategy;
 import org.apache.samza.util.HttpUtil;
 import org.codehaus.jackson.JsonFactory;
@@ -184,7 +184,7 @@ public class RemoteTableJoinExample implements StreamApplication {
     }
   }
 
-  static class StockPrice implements Serializable {
+  public static class StockPrice implements Serializable {
 
     public final String symbol;
     public final Double close;

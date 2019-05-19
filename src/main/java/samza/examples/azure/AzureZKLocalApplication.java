@@ -23,7 +23,7 @@ import joptsimple.OptionSet;
 import org.apache.samza.config.Config;
 import org.apache.samza.runtime.LocalApplicationRunner;
 import org.apache.samza.util.CommandLine;
-import samza.examples.azure.AzureApplication;
+
 
 public class AzureZKLocalApplication {
 

@@ -49,7 +49,7 @@
       <outputDirectory>bin</outputDirectory>
     </file>
     <file>
-      <source>${basedir}/bin/run-azure-application.sh</source>
+      <source>${basedir}/bin/run-event-hubs-zk-application.sh</source>
       <outputDirectory>bin</outputDirectory>
     </file>
   </files>
