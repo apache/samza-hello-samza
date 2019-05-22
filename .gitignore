@@ -33,3 +33,4 @@ build/
 state
 manifest.txt
 pathing.jar
+out/
