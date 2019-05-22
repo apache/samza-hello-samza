@@ -41,6 +41,7 @@ import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.table.Table;
 import org.apache.samza.table.descriptors.CachingTableDescriptor;
+import org.apache.samza.table.remote.BaseTableFunction;
 import org.apache.samza.table.remote.TableReadFunction;
 import org.apache.samza.table.descriptors.RemoteTableDescriptor;
 import org.apache.samza.util.ExponentialSleepStrategy;
@@ -158,7 +159,8 @@ public class RemoteTableJoinExample implements StreamApplication {
     }
   }
 
-  static class StockPriceReadFunction implements TableReadFunction<String, Double> {
+  static class StockPriceReadFunction extends BaseTableFunction
+      implements TableReadFunction<String, Double> {
     @Override
     public CompletableFuture<Double> getAsync(String symbol) {
       return CompletableFuture.supplyAsync(() -> {
