@@ -284,6 +284,12 @@ function clone_lxc_instance()
 	echo "Container config: $containerConfig"
 	echo "Setting mount directory in $containerConfig"
 	sudo sed -i "s/$original_container/$new_container/g" $containerConfig
+
+	echo "Creating mount dir in container img"
+	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/dev
+	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/proc
+	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/lxc-shared
+
 	echo 
 	echo "Finished creating container $new_container"
 }
