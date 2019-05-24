@@ -42,9 +42,8 @@ import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
 import org.apache.samza.table.descriptors.RemoteTableDescriptor;
-import org.apache.samza.table.remote.BaseTableFunction;
+import org.apache.samza.table.remote.DummyTableReadFunction;
 import org.apache.samza.table.remote.RemoteTable;
-import org.apache.samza.table.remote.TableReadFunction;
 import org.apache.samza.table.remote.couchbase.CouchbaseTableWriteFunction;
 import org.apache.samza.table.retry.TableRetryPolicy;
 
@@ -205,19 +204,6 @@ public class CouchbaseTableExample implements StreamApplication {
       CompletableFuture<Long> totalCountFuture = writeFn.incCounter(TOTAL_COUNT_ID);
       return String.format("%s word=%s, count=%d, total-count=%d",
           currentTime(), word, countFuture.join(), totalCountFuture.join());
-    }
-  }
-
-  static class DummyTableReadFunction extends BaseTableFunction implements TableReadFunction {
-
-    @Override
-    public CompletableFuture getAsync(Object o) {
-      throw new SamzaException("Not supported");
-    }
-
-    @Override
-    public boolean isRetriable(Throwable throwable) {
-      return false;
     }
   }
 
