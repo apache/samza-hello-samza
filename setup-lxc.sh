@@ -266,7 +266,12 @@ function setup_new_instance_from_img()
 	echo "Stopping..."
 	sudo lxc-stop -n $desired_instance_name -t 10
 	echo "$desired_instance_name Stopped"
-	echo "To start use \$ sudo lxc-start -d -n "$desired_instance_name
+	echo "To start "$desired_instance_name " use"
+	echo "sudo lxc-start -d -n "$desired_instance_name
+	echo 
+	echo "To stop "$desired_instance_name " use"
+	echo "sudo lxc-stop -n "$desired_instance_name
+	echo 
 
 }
 
