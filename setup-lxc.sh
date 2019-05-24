@@ -245,9 +245,11 @@ function setup_new_instance_from_img()
 		cd ..
 	fi
 
-	sudo cp -r yarn-lxc-samza/lxc-yarn-img/ $LXC_ROOTFS_DIR/lxc-yarn-img
+	sudo rm -rf $LXC_ROOTFS_DIR/lxc-yarn-img
+	sudo rm -rf $LXC_ROOTFS_DIR/lxc-yarn-img-bk
+	sudo cp -r yarn-lxc-samza/lxc-yarn-img-samza/ $LXC_ROOTFS_DIR/lxc-yarn-img-bk
 	
-	clone_lxc_instance lxc-yarn-img $desired_instance_name
+	clone_lxc_instance lxc-yarn-img-bk $desired_instance_name
 
 	echo "Default root password of "$desired_instance_name " is yarnLXC"
 
@@ -289,6 +291,9 @@ function clone_lxc_instance()
 	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/dev
 	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/proc
 	sudo mkdir -p $LXC_ROOTFS_DIR/$new_container/rootfs/lxc-shared
+
+	echo "Setting the right permissions in img"
+	sudo chmod -R 600  $LXC_ROOTFS_DIR/$new_container/rootfs/etc/ssh/
 
 	echo 
 	echo "Finished creating container $new_container"
