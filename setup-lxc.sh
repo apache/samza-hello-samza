@@ -274,6 +274,7 @@ function clone_lxc_instance()
 {
 	local original_container=$1
 	local new_container=$2
+	local base_hostname=`hostname`
 
 	echo "Stopping container $original_container"
 	sudo lxc-stop -n $original_container || true
@@ -294,6 +295,13 @@ function clone_lxc_instance()
 
 	echo "Setting the right permissions in img"
 	sudo chmod -R 600  $LXC_ROOTFS_DIR/$new_container/rootfs/etc/ssh/
+
+	# Adding line to /etc/hosts in lxc-instance
+	echo "IP of gateway on base machine is "$gatewayIP
+        LINE="$gatewayIP $base_hostname $base_hostname"
+        FILE="$LXC_ROOTFS_DIR/$new_container/rootfs/etc/hosts"
+        echo "Modifying lxc-instance's /etc/hosts. Adding $LINE to $FILE"
+        sudo grep -qF -- "$LINE" "$FILE" || sudo  echo "$LINE" | sudo tee -a "$FILE"
 
 	echo 
 	echo "Finished creating container $new_container"
