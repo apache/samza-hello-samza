@@ -288,6 +288,7 @@ under the License.
               <exclude>.git/**</exclude>
               <exclude>*.md</exclude>
               <exclude>docs/**</exclude>
+              <exclude>out/**</exclude>
               <exclude>config/**</exclude>
               <exclude>bin/**</exclude>
               <exclude>.gitignore</exclude>
