@@ -67,7 +67,7 @@ Package [samza.examples.wikipedia.application](https://github.com/apache/samza-h
 Once the job is started, we can tail the kafka topic by:
 
 ```
-./deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic wikipedia-stats
+./deploy/kafka/bin/kafka-console-consumer.sh  --bootstrap-server localhost:9092 --topic wikipedia-stats
 ```
 
 A code walkthrough of this application can be found [here](http://samza.apache.org/learn/tutorials/latest/hello-samza-high-level-code.html).
