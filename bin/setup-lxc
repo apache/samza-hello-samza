@@ -65,22 +65,22 @@ function check_OS()
 		echo "OS check passed."
 	else
 		echo "Only RHEL-Linux is currently supported for this setup. Exiting ..."
-		exit 0
+		exit 1
 	fi
 }
 
 
-function lxc_setup() 
+function setup_lxc() 
 {
 
 	#Install LXC (and its dependencies)
-	echo "Beginning installation. Installing lxc on your machine"
+	echo "Beginning installation. Installing LXC on your machine"
 	sudo yum -y install epel-release
 	sudo  yum -y install lxc lxc-templates libcap-devel libcgroup wget bridge-utils lxc-extra --skip-broken
 	echo "LXC installation complete."
 
 
-	lxcInterface=""
+	lxc_interface=""
 	gatewayIP=""
 
         for interface in ${POSSIBLE_LXC_INTERFACES[@]}
@@ -90,22 +90,21 @@ function lxc_setup()
 
                 if valid_ip $ip_address; then
                         echo "Interface $interface is valid for using with LXC instances."
-                        lxcInterface=$interface
+                        lxc_interface=$interface
                         gatewayIP=$ip_address
                         break;
                 else
                         echo "Interface $interface does not appear to be valid."
-                        continue;
                 fi
         done
 
-	if [[ -z "$lxcInterface" ]]; then 
+	if [[ -z "$lxc_interface" ]]; then 
 		echo "Did not find a valid network interface for use with LXC. Install LXC manually (https://linuxcontainers.org/lxc/getting-started/) and re-run."
-		exit 0
+		exit 1
 	fi
 
 	#Print the valid interface found
-	echo "Using interface "$lxcInterface "($gatewayIP) for use with LXC"
+	echo "Using interface "$lxc_interface "($gatewayIP) for use with LXC"
 
 	# Create shared directory for sharing between base machine and LXC-instances
 	echo "Creating dir $SHARED_LXC_DIR to be shared between base machine and LXC-instances"
@@ -130,6 +129,7 @@ function lxc_setup()
 
 	# Setting yarn.nm.liveness-monitor.expiry-interval-ms in  conf/yarn-site.xml
 	echo "Setting yarn.nm.liveness-monitor.expiry-interval-ms=$NM_LIVENESS_MS" in $YARN_SITE_XML
+	echo "Lowering default value for yarn.nm.liveness-monitor.expiry-interval-ms allows the RM to detect node-failures quickly"
 	
 	if [[ ! -z $(grep "yarn.nm.liveness-monitor.expiry-interval-ms" conf/yarn-site.xml) ]]; then
 		
@@ -154,7 +154,7 @@ function setup_lxc_instance()
 	base_hostname=`hostname`
 
 	# Creating lxc instance
-	echo "Creating lxc instance with name "$lxc_instance_name
+	echo "Creating LXC instance with name "$lxc_instance_name
 	sudo lxc-create -n $lxc_instance_name  -t $instance_type
 
 	# Create a directory inside the container's filesystem for mounting /lxc-shared
@@ -164,7 +164,7 @@ function setup_lxc_instance()
 	# Adding mount point for the shared-dir in the lxc-instance's config
 	LINE="lxc.mount.entry = /lxc-shared $LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/lxc-shared none bind 0 0"
 	FILE="$LXC_ROOTFS_DIR/$lxc_instance_name/config"
-	echo "Adding mount point for the shared-dir in the lxc-instance's config at $FILE"
+	echo "Adding mount point for the shared-dir in the LXC-instance's config at $FILE"
 	sudo grep -qF -- "$LINE" "$FILE" || sudo  echo "$LINE" | sudo tee -a "$FILE"
 
 	echo "Finished creating lxc-instance "$lxc_instance_name	
@@ -178,7 +178,7 @@ function setup_lxc_instance()
   	# Adding line to /etc/hosts in lxc-instance
 	LINE="$gatewayIP $base_hostname $base_hostname"
 	FILE="$LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/etc/hosts"
-	echo "Modifying lxc-instance's /etc/hosts. Adding $LINE to $FILE"
+	echo "Modifying LXC-instance's /etc/hosts. Adding $LINE to $FILE"
 	sudo grep -qF -- "$LINE" "$FILE" || sudo  echo "$LINE" | sudo tee -a "$FILE"
 
 	# Modifying /etc/hosts in lxc-instance
@@ -189,7 +189,7 @@ function setup_lxc_instance()
 	sudo sed -i '/localhost.localdomain/d' $LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/etc/hosts
 
 	# Creating a script in /etc/init.d to start NM on lxc-instance start
-	echo "Creating scripts to startup NodeManager on lxc-instance start"	
+	echo "Creating scripts to startup NodeManager on LXC-instance start"	
 	sudo echo "#!/bin/bash" | sudo tee -a  $LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/etc/rc.local
 	sudo echo "export JAVA_HOME=/root/java" | sudo tee -a $LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/etc/rc.local
 	sudo echo "sleep 5" | sudo tee -a $LXC_ROOTFS_DIR/$lxc_instance_name/rootfs/etc/rc.local
@@ -223,7 +223,7 @@ function setup_lxc_instance()
 function setup_new_lxc_instance() 
 {
 	check_OS
-	lxc_setup
+	setup_lxc
 	local lxc_instance_name=$1
 	setup_lxc_instance $lxc_instance_name $LXC_INSTANCE_TYPE	
 }
@@ -233,7 +233,7 @@ function setup_new_instance_from_img()
 	desired_instance_name=$1
 
 	check_OS
-	lxc_setup
+	setup_lxc
 
 	FOLDER=yarn-lxc-samza
 	URL=https://github.com/rmatharu/yarn-lxc-samza.git
@@ -305,7 +305,7 @@ function clone_lxc_instance()
 	echo "IP of gateway on base machine is "$gatewayIP
         LINE="$gatewayIP $base_hostname $base_hostname"
         FILE="$LXC_ROOTFS_DIR/$new_container/rootfs/etc/hosts"
-        echo "Modifying lxc-instance's /etc/hosts. Adding $LINE to $FILE"
+        echo "Modifying LXC-instance's /etc/hosts. Adding $LINE to $FILE"
         sudo grep -qF -- "$LINE" "$FILE" || sudo  echo "$LINE" | sudo tee -a "$FILE"
 
 	echo 
@@ -338,8 +338,8 @@ else
 	echo
 	echo "  Usage.."
 	echo
-	echo "  $ $0 create <lxc-instance-name> : Create a new lxc-instance with the given name."
-	echo "  $ $0 clone <existing-lxc-instance-name> <new-lxc-instance-name> : Create a new lxc-instance by cloning an existing instance."
+	echo "  $ $0 create <LXC-instance-name> : Create a new LXC-instance with the given name."
+	echo "  $ $0 clone <existing-LXC-instance-name> <new-LXC-instance-name> : Create a new LXC-instance by cloning an existing instance."
 	echo
 	exit 0
 fi
