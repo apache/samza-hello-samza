@@ -336,7 +336,15 @@ elif [[ "$COMMAND" == "clone"  &&  ! -z "$ARG0" && ! -z "$ARG1" ]]; then
 
 else
 	echo
-	echo "  Usage.."
+	echo "  This script is to be used with SAMZA with YARN."
+	echo "  To use this script, first run"
+	echo "  git clone https://github.com/apache/samza-hello-samza.git"
+	echo "  git checkout latest"
+	echo "  Copy this script to samza-hello-samza/bin, then run "
+	echo "  bin/grid bootstrap"
+	echo "  This will setup a local YARN cluster. Now use this script to add LXC instances as follows."
+	echo 
+	echo "  Usage:"
 	echo
 	echo "  $ $0 create <LXC-instance-name> : Create a new LXC-instance with the given name."
 	echo "  $ $0 clone <existing-LXC-instance-name> <new-LXC-instance-name> : Create a new LXC-instance by cloning an existing instance."
