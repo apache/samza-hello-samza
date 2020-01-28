@@ -15,9 +15,9 @@ public class PageViewAvroRecord extends org.apache.avro.specific.SpecificRecordB
 
   public static PageViewAvroRecord buildPageViewRecord(PageView pageView) {
     PageViewAvroRecord record = new PageViewAvroRecord();
-    record.put(0, pageView.userId);
-    record.put(1, pageView.country);
-    record.put(2, pageView.pageId);
+    record.userId = pageView.userId;
+    record.country = pageView.country;
+    record.pageId = pageView.pageId;
     return record;
   }
   public org.apache.avro.Schema getSchema() {

@@ -33,12 +33,16 @@ import org.apache.samza.system.descriptors.GenericOutputDescriptor;
 import org.apache.samza.system.descriptors.GenericSystemDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import samza.examples.azure.data.PageViewAvroRecord;
 import samza.examples.cookbook.data.PageView;
+import samza.examples.wikipedia.application.WikipediaApplication;
+
 
 /**
  * In this example, we demonstrate sending blobs to Azure Blob Storage.
- * This Samza job reads from Kafka topic "page-view-azure-blob-input" and produces blobs to Azure-Container "oss-testcontainer" in your Azure Storage account.
+ * This Samza job reads from Kafka topic "page-view-azure-blob-input" and produces blobs to Azure-Container "azure-blob-container" in your Azure Storage account.
  *
  * Currently, Samza supports sending Avro files are blobs.
  * Hence the incoming messages into the Samza job have to be converted to an Avro record.
@@ -73,10 +77,10 @@ import samza.examples.cookbook.data.PageView;
  *    Seeing Output:
  *    <ol>
  *      <li>
- *       See blobs in your Azure portal at https://<azure-storage-account-name>.blob.core.windows.net/oss-testcontainer/PageViewEventStream/<time-stamp>.avro
+ *       See blobs in your Azure portal at https://<azure-storage-account-name>.blob.core.windows.net/azure-blob-container/PageViewEventStream/<time-stamp>.avro
  *      </li>
  *      <li>
- *       system-name "oss-testcontainer" in configs and code below maps to Azure-Container in Azure Storage account.
+ *       system-name "azure-blob-container" in configs and code below maps to Azure-Container in Azure Storage account.
  *      </li>
  *      <li>
  *       <time-stamp> is of the format yyyy/MM/dd/HH/mm-ss-randomString.avro. Hence navigate through the virtual folders on the portal to see your blobs.
@@ -92,11 +96,13 @@ import samza.examples.cookbook.data.PageView;
  * </ol>
  */
 public class AzureBlobApplication implements StreamApplication {
+  private static final Logger LOG = LoggerFactory.getLogger(AzureBlobApplication.class);
+
   private static final List<String> KAFKA_CONSUMER_ZK_CONNECT = ImmutableList.of("localhost:2181");
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
   private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
   private static final String INPUT_PAGEVIEW_STREAM_ID = "page-view-azure-blob-input";
-  private static final String OUTPUT_SYSTEM = "oss-testcontainer";
+  private static final String OUTPUT_SYSTEM = "azure-blob-container";
   private static final String OUTPUT_STREAM = "PageViewEventStream";
 
   @Override
@@ -127,8 +133,7 @@ public class AzureBlobApplication implements StreamApplication {
     // Define the execution flow with the high-level API
     pageViewInput
         .map((message) -> {
-          System.out.println("Sending: ");
-          System.out.println("Received PageViewEvent with pageId: " + message.pageId);
+          LOG.info("Sending: Received PageViewEvent with pageId: " + message.pageId);
           return PageViewAvroRecord.buildPageViewRecord(message);
         })
         .sendTo(pageViewAvroRecordOutputStream);
