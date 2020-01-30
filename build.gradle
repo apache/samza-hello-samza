@@ -75,6 +75,13 @@ configurations.all {
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
+configurations.all {
+    // using log4j1 to log4j2 bridge so need to exclude log4j1
+    exclude group: 'log4j', module: 'log4j'
+    // exclude all other slf4j bindings that are transitively pulled in
+    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
 dependencies {
     compile(group: 'org.codehaus.jackson', name: 'jackson-jaxrs', version: '1.9.13')
     // slf4j-api 1.8.0-alpha2 uses ServiceProvider which requires additional set-up for split deployment, so pinning down the version
@@ -147,6 +154,7 @@ task distTar(dependsOn: build, type: Tar) {
         from configurations.runtime.artifacts.files
         from("src/main/resources/") {
             include "log4j2.xml"
+<<<<<<< HEAD
         }
     }
 }
@@ -222,6 +230,8 @@ task frameworkInfrastructureDistTar(type: Tar) {
     into("bin") {
         from {
             configurations.frameworkInfrastructureExplode.collect { tarTree(it) }
+=======
+>>>>>>> latest
         }
     }
     into("lib") {
