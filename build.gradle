@@ -49,9 +49,9 @@ configurations {
 
     // configuration for runtime for Samza framework API package
     frameworkApiRuntime {
-      // allowing logging to be chosen by application, so exclude log4j from here
-      exclude group: 'log4j', module: 'log4j'
-      exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        // using log4j2, so exclude log4j dependencies
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     }
     // configuration for generating class names for Samza framework API
     frameworkApiClasses {
@@ -60,26 +60,19 @@ configurations {
     }
     // configuration for runtime for Samza framework infrastructure package
     frameworkInfrastructureRuntime {
-      // allowing logging to be chosen by application, so exclude log4j from here
-      exclude group: 'log4j', module: 'log4j'
-      exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        // using log4j2, so exclude log4j dependencies
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     }
     // configuration for extracting scripts for running Samza in the framework infrastructure package
     frameworkInfrastructureExplode
 }
 
-configurations.all {
+configurations {
     // using log4j1 to log4j2 bridge so need to exclude log4j1
-    exclude group: 'log4j', module: 'log4j'
+    runtime.exclude group: 'log4j', module: 'log4j'
     // exclude all other slf4j bindings that are transitively pulled in
-    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-}
-
-configurations.all {
-    // using log4j1 to log4j2 bridge so need to exclude log4j1
-    exclude group: 'log4j', module: 'log4j'
-    // exclude all other slf4j bindings that are transitively pulled in
-    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    runtime.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
 dependencies {
