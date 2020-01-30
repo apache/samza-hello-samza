@@ -154,7 +154,6 @@ task distTar(dependsOn: build, type: Tar) {
         from configurations.runtime.artifacts.files
         from("src/main/resources/") {
             include "log4j2.xml"
-<<<<<<< HEAD
         }
     }
 }
@@ -230,8 +229,6 @@ task frameworkInfrastructureDistTar(type: Tar) {
     into("bin") {
         from {
             configurations.frameworkInfrastructureExplode.collect { tarTree(it) }
-=======
->>>>>>> latest
         }
     }
     into("lib") {
