@@ -43,6 +43,9 @@ idea {
     }
 }
 
+// NOTE: All of the "framework" pieces are for job coordinator dependency isolation. If you are
+// just doing regular packaging for a Samza job, then those pieces can be ignored.
+
 configurations {
     // a configuration for dependencies that need exploding into package
     explode
@@ -210,7 +213,6 @@ class ClassListGenerationTask extends DefaultTask {
         classListOutputFile.text = classNames.sort().join("\n")
     }
 }
-
 
 // build the framework infrastructure .tgz file
 task frameworkInfrastructureDistTar(type: Tar) {
