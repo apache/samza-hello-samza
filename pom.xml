@@ -149,7 +149,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-aws</artifactId>
+      <artifactId>samza-aws_2.11</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
