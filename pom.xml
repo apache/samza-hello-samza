@@ -148,6 +148,11 @@ under the License.
       <version>${samza.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.samza</groupId>
+      <artifactId>samza-aws_2.11</artifactId>
+      <version>${samza.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.schwering</groupId>
       <artifactId>irclib</artifactId>
       <version>1.10</version>
@@ -358,10 +363,11 @@ under the License.
           <version>0.9</version>
           <configuration>
             <excludes>
-              <exclude>*.patch</exclude>
-              <exclude>*.txt</exclude>
+              <exclude>**/*.patch</exclude>
+              <exclude>**/*.txt</exclude>
               <exclude>**/target/**</exclude>
-              <exclude>*.json</exclude>
+              <exclude>**/*.json</exclude>
+              <exclude>**/*.sql</exclude>
               <exclude>.vagrant/**</exclude>
               <exclude>.git/**</exclude>
               <exclude>*.md</exclude>
