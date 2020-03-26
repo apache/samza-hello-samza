@@ -154,8 +154,8 @@ class SamzaTask extends DefaultTask {
         project.exec {
             workingDir(project.projectDir)
             commandLine("deploy/samza/bin/run-job.sh",
-                    "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
-                    "--config-path=file://${project.projectDir}/deploy/samza/config/${configFile}")
+                    "--config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory",
+                    "--config job.config.loader.properties.path=${project.projectDir}/deploy/samza/config/${configFile}")
         }
     }
 }

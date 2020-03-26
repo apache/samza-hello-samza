@@ -57,7 +57,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/session-window-example.properties
+ *     ./deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/session-window-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-session-input" topic <br/>
