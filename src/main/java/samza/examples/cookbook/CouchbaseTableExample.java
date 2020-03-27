@@ -83,7 +83,13 @@ import org.apache.samza.table.retry.TableRetryPolicy;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/couchbase-table-example.properties
+ *     ./deploy/samza/bin/run-app.sh
+ *       --config app.class=samza.examples.cookbook.CouchbaseTableExample
+ *       --config job.name=couchbase-table-example
+ *       --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz
+ *       --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory
+ *       --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory
+ *       --config job.config.loader.properties.path=$PWD/deploy/samza/config/couchbase-table-example.properties
  *   </li>
  *   <li>
  *     Consume messages from the output topic <br/>
