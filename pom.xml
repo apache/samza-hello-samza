@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
+  <version>1.5.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
@@ -61,6 +61,17 @@ under the License.
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-core_2.11</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+        <!-- zookeeper dependency pulls in log4j1; exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -95,14 +106,8 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-log4j_2.11</artifactId>
+      <artifactId>samza-log4j2_2.11</artifactId>
       <version>${samza.version}</version>
-      <exclusions>
-       <exclusion>
-        <groupId>org.apache.samza</groupId>
-        <artifactId>samza-core_2.12</artifactId>
-       </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -115,6 +120,17 @@ under the License.
       <groupId>org.apache.samza</groupId>
       <artifactId>samza-yarn_2.11</artifactId>
       <version>${samza.version}</version>
+      <exclusions>
+        <!-- zookeeper dependency pulls in log4j1; exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
@@ -137,11 +153,6 @@ under the License.
       <version>${samza.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.11</artifactId>
-      <version>0.11.0.2</version>
-    </dependency>
-    <dependency>
       <groupId>org.schwering</groupId>
       <artifactId>irclib</artifactId>
       <version>1.10</version>
@@ -152,54 +163,126 @@ under the License.
       <version>1.6.2</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.2</version>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-jaxrs</artifactId>
       <version>1.9.13</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.4.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
-    </dependency>
-   <dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpcore</artifactId>
-    <version>4.4.1</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-api</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-client</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <!-- exclude log4j1 components since we want to use log4j2 components -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -211,7 +294,7 @@ under the License.
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>1.4.0-SNAPSHOT</samza.version>
+    <samza.version>1.5.0-SNAPSHOT</samza.version>
     <hadoop.version>2.6.1</hadoop.version>
   </properties>
 
@@ -280,10 +363,11 @@ under the License.
           <version>0.9</version>
           <configuration>
             <excludes>
-              <exclude>*.patch</exclude>
-              <exclude>*.txt</exclude>
+              <exclude>**/*.patch</exclude>
+              <exclude>**/*.txt</exclude>
               <exclude>**/target/**</exclude>
-              <exclude>*.json</exclude>
+              <exclude>**/*.json</exclude>
+              <exclude>**/*.sql</exclude>
               <exclude>.vagrant/**</exclude>
               <exclude>.git/**</exclude>
               <exclude>*.md</exclude>
