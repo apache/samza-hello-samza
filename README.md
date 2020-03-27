@@ -61,13 +61,19 @@ Package [samza.examples.cookbook](https://github.com/apache/samza-hello-samza/tr
 Package [samza.examples.wikipedia.application](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/wikipedia/application) contains a small Samza application which consumes the real-time feeds from Wikipedia, extracts the metadata of the events, and calculates statistics of all edits in a 10-second window. You can start the app on the grid using the run-app.sh script:
 
 ```
-./deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-application.properties
+./deploy/samza/bin/run-app.sh \
+  --config app.class=samza.examples.wikipedia.application.WikipediaApplication \
+  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config job.name=wikipedia-application \
+  --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
+  --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
+  --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-application.properties
 ```
 
 Once the job is started, we can tail the kafka topic by:
 
 ```
-./deploy/kafka/bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --topic wikipedia-stats
+./deploy/kafka/bin/kafka-console-consumer.sh  --bootstrap-server localhost:9092 --topic wikipedia-stats
 ```
 
 A code walkthrough of this application can be found [here](http://samza.apache.org/learn/tutorials/latest/hello-samza-high-level-code.html).
@@ -77,9 +83,27 @@ A code walkthrough of this application can be found [here](http://samza.apache.o
 Package [samza.examples.wikipedia.task](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/wikipedia/task) contains the low-level API Samza code for the Wikipedia example. To run it, use the following scripts:
 
 ```
-deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-feed.properties
-deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-parser.properties
-deploy/samza/bin/run-app.sh --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-stats.properties
+deploy/samza/bin/run-app.sh \
+  --config app.class=samza.examples.wikipedia.task.application.WikipediaFeedTaskApplication \
+  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config job.name=wikipedia-feed \
+  --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
+  --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
+  --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-feed.properties
+deploy/samza/bin/run-app.sh \
+  --config app.class=samza.examples.wikipedia.task.application.WikipediaParserTaskApplication \
+  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config job.name=wikipedia-parser \
+  --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
+  --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
+  --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-parser.properties
+deploy/samza/bin/run-app.sh \
+  --config app.class=samza.examples.wikipedia.task.application.WikipediaStatsTaskApplication \
+  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config job.name=wikipedia-stats \
+  --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
+  --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
+  --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-stats.properties
 ```
 
 Once the jobs are started, you can use the same _kafka-console-consumer.sh_ command as in the high-level API Wikipedia example to check out the output of the statistics.
