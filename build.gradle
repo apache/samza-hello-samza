@@ -166,7 +166,7 @@ class SamzaTask extends DefaultTask {
             commandLine("deploy/samza/bin/run-job.sh",
                     "--config app.class=${appClass}",
                     "--config job.name=${jobName}",
-                    "--config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz",
+                    "--config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz",
                     "--config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory",
                     "--config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory",
                     "--config job.config.loader.properties.path=${project.projectDir}/deploy/samza/config/${configFile}")

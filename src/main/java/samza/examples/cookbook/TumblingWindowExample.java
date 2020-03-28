@@ -62,7 +62,7 @@ import java.util.Map;
  *     ./deploy/samza/bin/run-app.sh
  *       --config app.class=samza.examples.cookbook.TumblingWindowExample
  *       --config job.name=tumbling-pageview-counter
- *       --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz
+ *       --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz
  *       --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory
  *       --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory
  *       --config job.config.loader.properties.path=$PWD/deploy/samza/config/tumbling-window-example.properties

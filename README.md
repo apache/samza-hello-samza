@@ -63,7 +63,7 @@ Package [samza.examples.wikipedia.application](https://github.com/apache/samza-h
 ```
 ./deploy/samza/bin/run-app.sh \
   --config app.class=samza.examples.wikipedia.application.WikipediaApplication \
-  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
   --config job.name=wikipedia-application \
   --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
   --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
@@ -85,21 +85,21 @@ Package [samza.examples.wikipedia.task](https://github.com/apache/samza-hello-sa
 ```
 deploy/samza/bin/run-app.sh \
   --config app.class=samza.examples.wikipedia.task.application.WikipediaFeedTaskApplication \
-  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
   --config job.name=wikipedia-feed \
   --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
   --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
   --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-feed.properties
 deploy/samza/bin/run-app.sh \
   --config app.class=samza.examples.wikipedia.task.application.WikipediaParserTaskApplication \
-  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
   --config job.name=wikipedia-parser \
   --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
   --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
   --config job.config.loader.properties.path=$PWD/deploy/samza/config/wikipedia-parser.properties
 deploy/samza/bin/run-app.sh \
   --config app.class=samza.examples.wikipedia.task.application.WikipediaStatsTaskApplication \
-  --config yarn.package.path=file:///Users/kwu/workspace/hello-samza/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
+  --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz \
   --config job.name=wikipedia-stats \
   --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory \
   --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory \
