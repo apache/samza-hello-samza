@@ -155,43 +155,31 @@ task stopGrid(type: Exec) {
 
 // helper task to run Samza jobs
 class SamzaTask extends DefaultTask {
-    String appClass;
-    String jobName;
     String configFile;
 
     @TaskAction
     def startSamza() {
         project.exec {
             workingDir(project.projectDir)
-            commandLine("deploy/samza/bin/run-job.sh",
-                    "--config app.class=${appClass}",
-                    "--config job.name=${jobName}",
-                    "--config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz",
-                    "--config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory",
-                    "--config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory",
-                    "--config job.config.loader.properties.path=${project.projectDir}/deploy/samza/config/${configFile}")
+            commandLine("deploy/samza/bin/run-app.sh",
+                "--config-path=${project.projectDir}/deploy/samza/config/${configFile}")
+
         }
     }
 }
 
 // helper to run the Samza job to retrieve Wikipedia data
 task runWikiFeed(dependsOn: [startGrid, deployHelloSamza], type: SamzaTask) {
-    appClass("samza.examples.wikipedia.task.application.WikipediaFeedTaskApplication")
-    jobName("wikipedia-feed")
     configFile("wikipedia-feed.properties")
 }
 
 // helper to run the Samza job process Wikipedia data
 task runWikiParser(dependsOn: [startGrid, deployHelloSamza], type: SamzaTask) {
-    appClass("app.class=samza.examples.wikipedia.task.application.WikipediaParserTaskApplication")
-    jobName("wikipedia-parser")
     configFile("wikipedia-parser.properties")
 }
 
 // helper to run the Samza job to summarize stats on Wikipedia edits
 task runWikiStats(dependsOn: [startGrid, deployHelloSamza], type: SamzaTask) {
-    appClass("samza.examples.wikipedia.task.application.WikipediaStatsTaskApplication")
-    jobName("wikipedia-stats")
     configFile("wikipedia-stats.properties")
 }
 

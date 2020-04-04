@@ -51,13 +51,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh
- *       --config app.class=samza.examples.cookbook.FilterExample
- *       --config job.name=pageview-filter
- *       --config yarn.package.path=$PWD/target/hello-samza-1.5.0-SNAPSHOT-dist.tar.gz
- *       --config job.factory.class=org.apache.samza.job.yarn.YarnJobFactory
- *       --config job.config.loader.factory=org.apache.samza.config.loaders.PropertiesConfigLoaderFactory
- *       --config job.config.loader.properties.path=$PWD/deploy/samza/config/filter-example.properties
+ *     ./deploy/samza/bin/run-app.sh --config-path=$PWD/deploy/samza/config/filter-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-filter-input" topic <br/>
