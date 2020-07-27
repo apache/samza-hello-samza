@@ -59,7 +59,7 @@ import java.util.Map;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/tumbling-window-example.properties
+ *     ./deploy/samza/bin/run-app.sh --config-path=$PWD/deploy/samza/config/tumbling-window-example.properties
  *   </li>
  *   <li>
  *     Produce some messages to the "pageview-tumbling-input" topic, waiting for some time between messages <br/>
