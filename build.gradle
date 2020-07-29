@@ -161,9 +161,9 @@ class SamzaTask extends DefaultTask {
     def startSamza() {
         project.exec {
             workingDir(project.projectDir)
-            commandLine("deploy/samza/bin/run-job.sh",
-                    "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
-                    "--config-path=file://${project.projectDir}/deploy/samza/config/${configFile}")
+            commandLine("deploy/samza/bin/run-app.sh",
+                "--config-path=${project.projectDir}/deploy/samza/config/${configFile}")
+
         }
     }
 }

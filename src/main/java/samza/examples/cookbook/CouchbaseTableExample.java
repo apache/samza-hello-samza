@@ -83,7 +83,7 @@ import org.apache.samza.table.retry.TableRetryPolicy;
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
- *     ./deploy/samza/bin/run-app.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file://$PWD/deploy/samza/config/couchbase-table-example.properties
+ *     ./deploy/samza/bin/run-app.sh --config-path=$PWD/deploy/samza/config/couchbase-table-example.properties
  *   </li>
  *   <li>
  *     Consume messages from the output topic <br/>

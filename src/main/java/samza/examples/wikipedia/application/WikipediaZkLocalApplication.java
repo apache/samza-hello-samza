@@ -34,8 +34,8 @@ public class WikipediaZkLocalApplication {
   /**
    * Executes the application using the local application runner.
    * It takes two required command line arguments
-   *  config-factory: a fully {@link org.apache.samza.config.factories.PropertiesConfigFactory} class name
-   *  config-path: path to application properties
+   *  --config job.config.loader.factory: a fully {@link org.apache.samza.config.loaders.PropertiesConfigLoaderFactory} class name
+   *  --config job.config.loader.properties.path: path to application properties
    *
    * @param args command line arguments
    */
