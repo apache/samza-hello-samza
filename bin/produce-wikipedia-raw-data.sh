@@ -44,6 +44,6 @@ fi
 # produce raw data
 while sleep 1
 do 
-  $BASE_DIR/deploy/kafka/bin/kafka-console-producer.sh < $BASE_DIR/wikipedia-raw.json --topic wikipedia-raw --broker $KAFKA_BROKER
+  $BASE_DIR/deploy/kafka/bin/kafka-console-producer.sh < $BASE_DIR/wikipedia-raw.json --topic wikipedia-raw --broker-list $KAFKA_BROKER
 done
 
