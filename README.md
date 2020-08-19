@@ -54,6 +54,21 @@ Before you can run a Samza application, you need to build a package for it. This
 
 After you've built your Samza package, you can start the example applications on the grid.
 
+##### - Running Locally
+
+Use the below commands to start a feed locally and populate the ```wikipedia-raw``` topic:
+
+```
+./deploy/samza/bin/run-app.sh --config-path=$PWD/deploy/samza/config/wikipedia-feed.properties
+./bin/produce-wikipedia-raw-data.sh
+```
+
+Use the below command to view the contents of the topic:
+
+```
+./deploy/kafka/bin/kafka-console-consumer.sh --topic wikipedia-raw --from-beginning --bootstrap-server localhost:9092
+```
+
 ##### - High-level API Examples
 
 Package [samza.examples.cookbook](https://github.com/apache/samza-hello-samza/tree/master/src/main/java/samza/examples/cookbook) contains various examples of high-level API operator usage, such as map, partitionBy, window and join. Each example is a runnable Samza application with the steps in the class javadocs, e.g [PageViewAdClickJoiner](https://github.com/apache/samza-hello-samza/blob/master/src/main/java/samza/examples/cookbook/JoinExample.java).
