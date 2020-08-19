@@ -38,7 +38,7 @@ echo "Using ${KAFKA_BROKER} as the kafka broker. You can overwrite it with '-b y
 EXIST=$($BASE_DIR/deploy/kafka/bin/kafka-topics.sh --describe --topic wikipedia-raw --zookeeper $ZOOKEEPER)
 if [ -z "$EXIST" ]
   then
-    $BASE_DIR/deploy/kafka/bin/kafka-topics.sh --create --zookeeper $ZOOKEEPER --topic wikipedia-raw --partition 1 --replication-factor 1
+    $BASE_DIR/deploy/kafka/bin/kafka-topics.sh --create --zookeeper $ZOOKEEPER --topic wikipedia-raw --partitions 1 --replication-factor 1
 fi
 
 # produce raw data
