@@ -36,7 +36,6 @@ repositories {
     maven { url "https://repository.apache.org/content/groups/public" }
 }
 
-
 idea {
     module {
         sourceDirs += file('src/main/java')
@@ -44,21 +43,45 @@ idea {
     }
 }
 
-// a configuration for dependencies that need exploding into package
+// NOTE: All of the "framework" pieces are for job coordinator dependency isolation. If you are
+// just doing regular packaging for a Samza job, then those pieces can be ignored.
+
 configurations {
+    // a configuration for dependencies that need exploding into package
     explode
+
+    // configuration for runtime for Samza framework API package
+    frameworkApiRuntime {
+        // using log4j2, so exclude log4j dependencies
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+    // configuration for generating class names for Samza framework API
+    frameworkApiClasses {
+        // only want to generate class names for the classes directly in the dependencies, not for transitive dependencies
+        transitive = false
+    }
+    // configuration for runtime for Samza framework infrastructure package
+    frameworkInfrastructureRuntime {
+        // using log4j2, so exclude log4j dependencies
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+    // configuration for extracting scripts for running Samza in the framework infrastructure package
+    frameworkInfrastructureExplode
 }
 
-configurations.all {
+configurations {
     // using log4j1 to log4j2 bridge so need to exclude log4j1
-    exclude group: 'log4j', module: 'log4j'
+    runtime.exclude group: 'log4j', module: 'log4j'
     // exclude all other slf4j bindings that are transitively pulled in
-    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    runtime.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
 dependencies {
     compile(group: 'org.codehaus.jackson', name: 'jackson-jaxrs', version: '1.9.13')
-    compile(group: 'org.slf4j', name: 'slf4j-api', version: "$SLF4J_VERSION")
+    // slf4j-api 1.8.0-alpha2 uses ServiceProvider which requires additional set-up for split deployment, so pinning down the version
+    compile(group: 'org.slf4j', name: 'slf4j-api', version: "$SLF4J_VERSION") { force = true }
     compile(group: 'org.schwering', name: 'irclib', version: '1.10')
     compile(group: 'org.apache.samza', name: 'samza-api', version: "$SAMZA_VERSION")
     compile(group: 'org.apache.samza', name: 'samza-aws_2.11', version: "$SAMZA_VERSION")
@@ -74,8 +97,26 @@ dependencies {
     runtime(group: 'org.apache.samza', name: 'samza-yarn_2.11', version: "$SAMZA_VERSION")
     runtime(group: 'org.apache.kafka', name: 'kafka_2.11', version: "$KAFKA_VERSION")
     runtime(group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: "$HADOOP_VERSION")
+
     testCompile(group: 'org.apache.samza', name: 'samza-test_2.11', version: "$SAMZA_VERSION")
     testCompile(group: 'junit', name: 'junit', version: "4.12")
+
+    // dependencies for framework API package
+    frameworkApiRuntime(group: 'org.apache.samza', name: 'samza-api', version: "$SAMZA_VERSION")
+    frameworkApiRuntime(group: 'org.apache.samza', name: 'samza-kv_2.11', version: "$SAMZA_VERSION")
+    frameworkApiRuntime(group: 'org.apache.samza', name: 'samza-log4j2_2.11', version: "$SAMZA_VERSION") // pulls in log4j2 dependencies
+    frameworkApiRuntime(group: 'org.slf4j', name: 'slf4j-api', version: "$SLF4J_VERSION") { force = true }
+    // need to specify the classes in these modules as framework API classes
+    frameworkApiClasses(group: 'org.apache.samza', name: 'samza-api', version: "$SAMZA_VERSION")
+    frameworkApiClasses(group: 'org.apache.samza', name: 'samza-kv_2.11', version: "$SAMZA_VERSION")
+
+    // dependencies for framework infrastructure package
+    frameworkInfrastructureRuntime(group: 'org.apache.samza', name: 'samza-core_2.11', version: "$SAMZA_VERSION")
+    frameworkInfrastructureRuntime(group: 'org.apache.samza', name: 'samza-kafka_2.11', version: "$SAMZA_VERSION")
+    frameworkInfrastructureRuntime(group: 'org.apache.samza', name: 'samza-log4j2_2.11', version: "$SAMZA_VERSION")
+    frameworkInfrastructureRuntime(group: 'org.apache.samza', name: 'samza-yarn_2.11', version: "$SAMZA_VERSION")
+    frameworkInfrastructureRuntime(group: 'org.slf4j', name: 'slf4j-api', version: "$SLF4J_VERSION") { force = true }
+    frameworkInfrastructureExplode(group: 'org.apache.samza', name: 'samza-shell',  ext: 'tgz', classifier: 'dist', version: "$SAMZA_VERSION")
 }
 
 // make the samza distribution .tgz file
@@ -90,6 +131,7 @@ task distTar(dependsOn: build, type: Tar) {
             include "wikipedia-parser.properties"
             include "wikipedia-stats.properties"
             include "wikipedia-application.properties"
+            include "wikipedia-application-with-framework.properties"
 
             // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
             filter { String line ->
@@ -112,6 +154,84 @@ task distTar(dependsOn: build, type: Tar) {
         }
     }
 }
+
+//
+// Job coordinator isolation tasks
+//
+
+def SAMZA_FRAMEWORK_TMP_DIR_NAME = "samzaFrameworkTmp"
+
+task classListGeneration(type: ClassListGenerationTask) {
+    classListOutputDirectory(new File(project.buildDir, SAMZA_FRAMEWORK_TMP_DIR_NAME))
+    customClassListEntries = [
+        // for log4j2 classes (both api and core classes)
+        "org.apache.logging.log4j.*"
+    ]
+}
+
+// build the framework API .tgz file
+task frameworkApiDistTar(dependsOn: classListGeneration, type: Tar) {
+    baseName("samza-hello-samza-frameworkApi")
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+    into("lib") {
+        from configurations.frameworkApiRuntime
+        from new File(new File(project.buildDir, SAMZA_FRAMEWORK_TMP_DIR_NAME), ClassListGenerationTask.SAMZA_FRAMEWORK_API_CLASSES_FILE_NAME)
+    }
+}
+
+/**
+ * Generates the framework API class list file by looking at the structure of the JARs in the frameworkApiClasses configuration.
+ */
+class ClassListGenerationTask extends DefaultTask {
+    static String SAMZA_FRAMEWORK_API_CLASSES_FILE_NAME = "samza-framework-api-classes.txt"
+    File classListOutputDirectory;
+    List<String> customClassListEntries;
+
+    @TaskAction
+    def generateClassList() {
+        def classExtension = ".class"
+        def classNames = [] as Set
+        classNames.addAll(customClassListEntries)
+        def jarFiles = project.configurations.frameworkApiClasses.files
+            .findAll { it.name.endsWith(".jar") }
+            .each { project.zipTree(it)
+                .matching { pattern -> pattern.include("**/*" + classExtension) }
+                .visit(new FileVisitor() {
+                    public void visitDir(FileVisitDetails fileVisitDetails) {
+                        // we only care about class files, so no need to do anything for directories
+                    }
+                    public void visitFile(FileVisitDetails fileVisitDetails) {
+                        def path = fileVisitDetails.getPath()
+                        classNames.add(path.substring(0, path.length() - classExtension.length()).replace("/", "."))
+                    }
+                })
+            }
+        classListOutputDirectory.mkdirs()
+        def classListOutputFile = new File(classListOutputDirectory, SAMZA_FRAMEWORK_API_CLASSES_FILE_NAME)
+        classListOutputFile.text = classNames.sort().join("\n")
+    }
+}
+
+// build the framework infrastructure .tgz file
+task frameworkInfrastructureDistTar(type: Tar) {
+    baseName("samza-hello-samza-frameworkInfrastructure")
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+    into("bin") {
+        from {
+            configurations.frameworkInfrastructureExplode.collect { tarTree(it) }
+        }
+    }
+    into("lib") {
+        from configurations.frameworkInfrastructureRuntime
+    }
+}
+
 
 // install everything
 task installGrid(type: Exec) {
