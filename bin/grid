@@ -39,7 +39,7 @@ DOWNLOAD_KAFKA=https://archive.apache.org/dist/kafka/2.1.1/kafka_2.11-2.1.1.tgz
 DOWNLOAD_YARN=https://archive.apache.org/dist/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz
 DOWNLOAD_ZOOKEEPER=https://archive.apache.org/dist/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz
 
-SERVICE_WAIT_TIMEOUT_SEC=20
+SERVICE_WAIT_TIMEOUT_SEC=40
 ZOOKEEPER_PORT=2181
 RESOURCEMANAGER_PORT=8032
 NODEMANAGER_PORT=8042
