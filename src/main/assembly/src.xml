@@ -52,6 +52,16 @@
       <source>${basedir}/bin/run-event-hubs-zk-application.sh</source>
       <outputDirectory>bin</outputDirectory>
     </file>
+    <file>
+      <source>${basedir}/src/main/config/ad-event-feed.properties</source>
+      <outputDirectory>config</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+    <file>
+      <source>${basedir}/src/main/config/ad-event-join.properties</source>
+      <outputDirectory>config</outputDirectory>
+      <filtered>true</filtered>
+    </file>
   </files>
   <dependencySets>
     <dependencySet>
