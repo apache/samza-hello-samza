@@ -102,6 +102,10 @@ under the License.
         <groupId>org.apache.samza</groupId>
         <artifactId>samza-kafka_2.12</artifactId>
        </exclusion>
+       <exclusion>
+         <groupId>org.eclipse.jetty</groupId>
+         <artifactId>jetty-http</artifactId>
+       </exclusion>
       </exclusions>
     </dependency>
     <dependency>
