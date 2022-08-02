@@ -18,7 +18,8 @@
  */
 package samza.examples.cookbook.data;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 /**
  * A page view event

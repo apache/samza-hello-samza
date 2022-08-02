@@ -47,22 +47,22 @@ import java.util.Map;
  * <ol>
  *   <li>
  *     Ensure that the topic "pageview-filter-input" is created  <br/>
- *     ./deploy/kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --topic pageview-filter-input --partitions 2 --replication-factor 1
+ *     ./deploy/kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --topic startpoint-test-input-4 --partitions 2 --replication-factor 1
  *   </li>
  *   <li>
  *     Run the application using the run-app.sh script <br/>
  *     ./deploy/samza/bin/run-app.sh --config-path=$PWD/deploy/samza/config/filter-example.properties
  *   </li>
  *   <li>
- *     Produce some messages to the "pageview-filter-input" topic <br/>
- *     ./deploy/kafka/bin/kafka-console-producer.sh --topic pageview-filter-input --broker-list localhost:9092 <br/>
- *     {"userId": "user1", "country": "india", "pageId":"google.com"} <br/>
- *     {"userId": "invalidUserId", "country": "france", "pageId":"facebook.com"} <br/>
- *     {"userId": "user2", "country": "china", "pageId":"yahoo.com"}
+ *     Produce some messages to the "startpoint-test-input-4" topic <br/>
+ *     ./deploy/kafka/bin/kafka-console-producer.sh --topic startpoint-test-input-4 --broker-list localhost:9092 --property "parse.key=true" --property "key.separator=|" <br/>
+ *     0|{"userId": "user1", "country": "india", "pageId":"google.com"} <br/>
+ *     0|{"userId": "invalidUserId", "country": "france", "pageId":"facebook.com"} <br/>
+ *     1|{"userId": "user2", "country": "china", "pageId":"yahoo.com"}
  *   </li>
  *   <li>
- *     Consume messages from the "pageview-filter-output" topic (e.g. bin/kafka-console-consumer.sh)
- *     ./deploy/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic pageview-filter-output --property print.key=true
+ *     Consume messages from the "startpoint-test-output-4" topic (e.g. bin/kafka-console-consumer.sh)
+ *     ./deploy/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic startpoint-test-output-4 --property print.key=true
  *   </li>
  * </ol>
  */
@@ -72,8 +72,8 @@ public class FilterExample implements StreamApplication {
   private static final List<String> KAFKA_PRODUCER_BOOTSTRAP_SERVERS = ImmutableList.of("localhost:9092");
   private static final Map<String, String> KAFKA_DEFAULT_STREAM_CONFIGS = ImmutableMap.of("replication.factor", "1");
 
-  private static final String INPUT_STREAM_ID = "pageview-filter-input";
-  private static final String OUTPUT_STREAM_ID = "pageview-filter-output";
+  private static final String INPUT_STREAM_ID = "startpoint-test-input-4";
+  private static final String OUTPUT_STREAM_ID = "startpoint-test-output-4";
   private static final String INVALID_USER_ID = "invalidUserId";
 
   @Override

@@ -42,10 +42,10 @@
   </Appenders>
 
   <Loggers>
-    <Logger name="STARTUP_LOGGER" level="info" additivity="false">
+    <Logger name="STARTUP_LOGGER" level="debug" additivity="false">
       <AppenderRef ref="StartupAppender"/>
     </Logger>
-    <Root level="info">
+    <Root level="debug">
       <AppenderRef ref="RollingFile"/>
     </Root>
   </Loggers>

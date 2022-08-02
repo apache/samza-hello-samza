@@ -36,6 +36,12 @@ under the License.
   <url>https://samza.apache.org/</url>
 
   <dependencies>
+    <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-http -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-http</artifactId>
+      <version>9.4.38.v20210224</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
