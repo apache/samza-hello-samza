@@ -41,6 +41,7 @@ import org.apache.samza.serializers.StringSerde;
 import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
+import org.apache.samza.table.ReadWriteTable;
 import org.apache.samza.table.descriptors.RemoteTableDescriptor;
 import org.apache.samza.table.remote.NoOpTableReadFunction;
 import org.apache.samza.table.remote.RemoteTable;
@@ -194,7 +195,8 @@ public class CouchbaseTableExample implements StreamApplication {
 
     @Override
     public void init(Context context) {
-      RemoteTable table = (RemoteTable) context.getTaskContext().getTable("couchbase-table");
+      context.getTaskContext().getTable("couchbase-table");
+      RemoteTable table = (RemoteTable) context.getTaskContext().getUpdatableTable("couchbase-table");
       writeFn = (MyCouchbaseTableWriteFunction) table.getWriteFunction();
     }
 

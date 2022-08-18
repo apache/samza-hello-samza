@@ -19,6 +19,8 @@
 
 package samza.examples.test.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paranamer.ParanamerModule;
 import com.google.common.io.Resources;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.codehaus.jackson.map.ObjectMapper;
+
 import samza.examples.cookbook.data.PageView;
 import samza.examples.wikipedia.application.WikipediaApplication;
 
@@ -53,6 +55,7 @@ public class TestUtils {
         break;
     }
     ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new ParanamerModule());
     return wikiEvents.stream().map(event -> {
       try {
         return new WikipediaFeedEvent(mapper.readValue(event, HashMap.class));

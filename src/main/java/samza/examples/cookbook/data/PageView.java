@@ -24,9 +24,12 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * A page view event
  */
 public class PageView {
-  public final String userId;
-  public final String country;
-  public final String pageId;
+  public String userId;
+  public String country;
+  public String pageId;
+
+  public PageView() {
+  }
 
   /**
    * Constructs a page view event.
