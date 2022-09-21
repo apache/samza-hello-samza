@@ -118,7 +118,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-yarn_${samza.scala.version}</artifactId>
+      <artifactId>samza-yarn3_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
       <exclusions>
         <!-- zookeeper dependency pulls in log4j1; exclude log4j1 components since we want to use log4j2 components -->
