@@ -128,7 +128,7 @@ public class RemoteTableJoinExample implements StreamApplication {
     MessageStream<String> stockSymbolStream = appDescriptor.getInputStream(stockSymbolInputDescriptor);
     OutputStream<StockPrice> stockPriceStream = appDescriptor.getOutputStream(stockPriceOutputDescriptor);
 
-    RemoteTableDescriptor<String, Double> remoteTableDescriptor =
+    RemoteTableDescriptor<String, Double, Double> remoteTableDescriptor =
         new RemoteTableDescriptor("remote-table")
             .withReadRateLimit(10)
             .withReadFunction(new StockPriceReadFunction());

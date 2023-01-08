@@ -41,6 +41,8 @@ import org.apache.samza.serializers.StringSerde;
 import org.apache.samza.system.kafka.descriptors.KafkaInputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaOutputDescriptor;
 import org.apache.samza.system.kafka.descriptors.KafkaSystemDescriptor;
+import org.apache.samza.table.ReadWriteTable;
+import org.apache.samza.table.ReadWriteUpdateTable;
 import org.apache.samza.table.descriptors.RemoteTableDescriptor;
 import org.apache.samza.table.remote.NoOpTableReadFunction;
 import org.apache.samza.table.remote.RemoteTable;
@@ -190,18 +192,18 @@ public class CouchbaseTableExample implements StreamApplication {
 
   static class MyCountFunction implements MapFunction<String, String> {
 
-    private MyCouchbaseTableWriteFunction writeFn;
+    private ReadWriteTable readWriteTable;
 
     @Override
     public void init(Context context) {
-      RemoteTable table = (RemoteTable) context.getTaskContext().getTable("couchbase-table");
-      writeFn = (MyCouchbaseTableWriteFunction) table.getWriteFunction();
+      readWriteTable = (ReadWriteTable) context.getTaskContext().getTable("couchbase-table");
     }
 
     @Override
     public String apply(String word) {
-      CompletableFuture<Long> countFuture = writeFn.incCounter(word);
-      CompletableFuture<Long> totalCountFuture = writeFn.incCounter(TOTAL_COUNT_ID);
+      CompletableFuture<Long> countFuture = readWriteTable.writeAsync(MyCouchbaseTableWriteFunction.OP_COUNTER, word);
+      CompletableFuture<Long> totalCountFuture = readWriteTable.writeAsync(MyCouchbaseTableWriteFunction.OP_COUNTER, TOTAL_COUNT_ID);
+
       return String.format("%s word=%s, count=%d, total-count=%d",
           currentTime(), word, countFuture.join(), totalCountFuture.join());
     }

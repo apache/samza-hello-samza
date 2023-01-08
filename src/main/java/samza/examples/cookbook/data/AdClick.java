@@ -30,6 +30,10 @@ public class AdClick {
   private String adId; // an unique id for the ad
   private String userId; // the user that clicked the ad
 
+  public AdClick(){
+
+  }
+
   public AdClick(
       @JsonProperty("pageId") String pageId,
       @JsonProperty("adId") String adId,
