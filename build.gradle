@@ -25,7 +25,7 @@ defaultTasks 'distTar'
 
 task wrapper(type: Wrapper) {
     description = "Updates gradlew and supporting files."
-    gradleVersion = '2.3'
+    gradleVersion = '4.8.1'
 }
 
 version = "$SAMZA_VERSION"
