@@ -91,7 +91,7 @@ install_samza() {
     git clone https://gitbox.apache.org/repos/asf/samza.git
     cd samza
   fi
-  ./gradlew -PscalaSuffix=2.11 clean publishToMavenLocal
+  ./gradlew -PscalaSuffix=2.12 clean publishToMavenLocal
   popd
 }
 
