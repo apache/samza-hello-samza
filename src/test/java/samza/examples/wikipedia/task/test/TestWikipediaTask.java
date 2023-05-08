@@ -24,12 +24,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paranamer.ParanamerModule;
 import org.apache.samza.serializers.NoOpSerde;
 import org.apache.samza.test.framework.TestRunner;
 import org.apache.samza.test.framework.system.descriptors.InMemoryInputDescriptor;
 import org.apache.samza.test.framework.system.descriptors.InMemoryOutputDescriptor;
 import org.apache.samza.test.framework.system.descriptors.InMemorySystemDescriptor;
-import org.codehaus.jackson.map.ObjectMapper;
+
 import org.junit.Assert;
 import org.junit.Test;
 import samza.examples.wikipedia.system.WikipediaFeed.WikipediaFeedEvent;
@@ -62,6 +65,7 @@ public class TestWikipediaTask {
   public static List<Map<String, Object>> parseJSONToMap(String[] lines) throws Exception{
     List<Map<String, Object>> wikiRawEvents = new ArrayList<>();
     ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new ParanamerModule());
     for (String line : lines) {
       wikiRawEvents.add(mapper.readValue(line, HashMap.class));
     }

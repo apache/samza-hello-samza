@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.samza</groupId>
   <artifactId>hello-samza</artifactId>
-  <version>1.6.0</version>
+  <version>1.8.0</version>
   <packaging>jar</packaging>
   <name>Samza Example</name>
   <description>
@@ -48,7 +48,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-azure_2.11</artifactId>
+      <artifactId>samza-azure_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
       <exclusions>
        <exclusion>
@@ -59,7 +59,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-core_2.11</artifactId>
+      <artifactId>samza-core_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
       <exclusions>
         <!-- zookeeper dependency pulls in log4j1; exclude log4j1 components since we want to use log4j2 components -->
@@ -75,7 +75,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-test_2.11</artifactId>
+      <artifactId>samza-test_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
       <exclusions>
        <exclusion>
@@ -106,7 +106,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-log4j2_2.11</artifactId>
+      <artifactId>samza-log4j2_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
@@ -118,7 +118,7 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-yarn_2.11</artifactId>
+      <artifactId>samza-yarn3_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
       <exclusions>
         <!-- zookeeper dependency pulls in log4j1; exclude log4j1 components since we want to use log4j2 components -->
@@ -134,22 +134,22 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-kv_2.11</artifactId>
+      <artifactId>samza-kv_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-kv-rocksdb_2.11</artifactId>
+      <artifactId>samza-kv-rocksdb_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-kafka_2.11</artifactId>
+      <artifactId>samza-kafka_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.samza</groupId>
-      <artifactId>samza-aws_2.11</artifactId>
+      <artifactId>samza-aws_${samza.scala.version}</artifactId>
       <version>${samza.version}</version>
     </dependency>
     <dependency>
@@ -163,9 +163,9 @@ under the License.
       <version>1.6.2</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-      <version>1.9.13</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.12.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -294,8 +294,9 @@ under the License.
   <properties>
     <!-- maven specific properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <samza.version>1.6.0</samza.version>
-    <hadoop.version>2.6.1</hadoop.version>
+    <samza.version>1.8.0</samza.version>
+    <samza.scala.version>2.12</samza.scala.version>    
+    <hadoop.version>3.3.4</hadoop.version>
   </properties>
 
   <developers>

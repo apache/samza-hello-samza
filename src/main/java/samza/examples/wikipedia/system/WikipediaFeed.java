@@ -19,14 +19,9 @@
 
 package samza.examples.wikipedia.system;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paranamer.ParanamerModule;
 import org.apache.samza.SamzaException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.schwering.irc.lib.IRCConnection;
 import org.schwering.irc.lib.IRCEventListener;
 import org.schwering.irc.lib.IRCModeParser;
@@ -34,10 +29,20 @@ import org.schwering.irc.lib.IRCUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
 public class WikipediaFeed {
   private static final Logger log = LoggerFactory.getLogger(WikipediaFeed.class);
   private static final Random random = new Random();
   private static final ObjectMapper jsonMapper = new ObjectMapper();
+  static {
+    jsonMapper.registerModule(new ParanamerModule());
+  }
 
   private final Map<String, Set<WikipediaFeedListener>> channelListeners;
   private final String host;
